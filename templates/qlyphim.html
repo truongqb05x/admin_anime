@@ -269,23 +269,77 @@
     <script>
         let currentEditingMovieId = null;
 
-        // Khởi tạo trang
-        document.addEventListener('DOMContentLoaded', function() {
-            loadMovies();
-            loadGenres();
-            loadActors();
-            loadCountries(); // Load countries for filter and form
-            setupEventListeners();
-            
-            // Tự động tạo slug từ tên phim
-            document.getElementById('movieTitle').addEventListener('input', function() {
-                const title = this.value;
-                const slug = title.toLowerCase()
-                    .replace(/[^\w\s]/gi, '')
-                    .replace(/\s+/g, '-');
-                document.getElementById('movieSlug').value = slug;
-            });
+// Khởi tạo trang
+document.addEventListener('DOMContentLoaded', function() {
+    loadMovies();
+    loadGenres();
+    loadActors();
+    loadCountries(); // Load countries for filter and form
+    setupEventListeners();
+
+    // Hàm chuyển tiếng Việt có dấu sang không dấu và tạo slug
+function createSlug(title) {
+    return title
+        .toLowerCase()
+        .normalize('NFD')                   // tách dấu
+        .replace(/[\u0300-\u036f]/g, '')    // loại bỏ dấu
+        .replace(/\s+/g, '-')               // thay khoảng trắng bằng -
+        .replace(/[^a-z0-9\-]/g, '')        // loại ký tự đặc biệt
+        .replace(/\-+/g, '-')               // loại dấu - thừa
+        .replace(/^\-+|\-+$/g, '');         // loại - ở đầu và cuối
+}
+    
+
+    // Hàm tự tạo Meta Description chuẩn SEO
+    function generateMetaDescription() {
+        const title = document.getElementById('movieTitle')?.value || '';
+        const year = document.getElementById('movieReleaseYear')?.value || '';
+        const genres = Array.from(document.getElementById('movieGenres')?.selectedOptions || [])
+                            .map(o => o.text).join(', ') || 'phim';
+        const duration = document.getElementById('movieDuration')?.value || '';
+
+        let desc = `Xem phim ${title}`;
+        if (year) desc += ` (${year})`;
+        desc += ` thuộc thể loại ${genres}.`;
+        if (duration) desc += ` Thời lượng: ${duration} phút.`;
+
+        // Giới hạn 150–160 ký tự
+        return desc.length > 160 ? desc.substring(0, 157) + '...' : desc;
+    }
+
+    // Lấy input fields
+    const movieTitleInput = document.getElementById('movieTitle');
+    const movieSlugInput = document.getElementById('movieSlug');
+    const movieMetaInput = document.getElementById('movieMetaDescription');
+
+    if (movieTitleInput && movieSlugInput && movieMetaInput) {
+        // Tự động tạo slug khi nhập tên phim
+        movieTitleInput.addEventListener('input', function() {
+            movieSlugInput.value = createSlug(this.value);
+
+            // Nếu Meta Description chưa chỉnh tay, tự động gán
+            if (!movieMetaInput.dataset.userEdited) {
+                movieMetaInput.value = generateMetaDescription();
+            }
         });
+
+        // Cập nhật Meta Description khi thay đổi năm, thể loại, thời lượng
+        const updateMetaOnChange = () => {
+            if (!movieMetaInput.dataset.userEdited) {
+                movieMetaInput.value = generateMetaDescription();
+            }
+        };
+
+        document.getElementById('movieReleaseYear')?.addEventListener('input', updateMetaOnChange);
+        document.getElementById('movieDuration')?.addEventListener('input', updateMetaOnChange);
+        document.getElementById('movieGenres')?.addEventListener('change', updateMetaOnChange);
+
+        // Đánh dấu nếu người dùng tự chỉnh Meta Description
+        movieMetaInput.addEventListener('input', function() {
+            this.dataset.userEdited = true;
+        });
+    }
+});
 
         // Tải danh sách thể loại
         async function loadGenres() {
@@ -604,56 +658,70 @@
             }
         }
 
-        async function saveMovie() {
-            const form = document.getElementById('movieForm');
-            const formData = new FormData(form);
-            
-            // Add non-file inputs manually
-            formData.append('title', document.getElementById('movieTitle').value);
-            formData.append('slug', document.getElementById('movieSlug').value);
-            formData.append('description', document.getElementById('movieDescription').value);
-            formData.append('meta_description', document.getElementById('movieMetaDescription').value);
-            formData.append('release_year', document.getElementById('movieReleaseYear').value);
-            formData.append('duration', document.getElementById('movieDuration').value);
-            formData.append('trailer_url', document.getElementById('movieTrailerUrl').value);
-            formData.append('video_url', document.getElementById('movieVideoUrl').value);
-            formData.append('is_series', document.getElementById('movieIsSeries').checked);
-            formData.append('is_featured', document.getElementById('movieIsFeatured').checked);
-            formData.append('genre_ids', getSelectedValues('movieGenres'));
-            formData.append('country_ids', getSelectedValues('movieCountries'));
-            formData.append('actor_ids', getSelectedValues('movieActors'));
+async function saveMovie() {
+    const title = document.getElementById('movieTitle').value;
+    const slug = document.getElementById('movieSlug').value;
+    
+    if (!title || !slug) {
+        alert('Vui lòng điền đầy đủ thông tin bắt buộc (Tên phim và Slug)!');
+        return;
+    }
 
-            if (!formData.get('title') || !formData.get('slug')) {
-                alert('Vui lòng điền đầy đủ thông tin bắt buộc (Tên phim và Slug)!');
-                return;
-            }
+    const formData = new FormData();
+    
+    // Thêm các trường dữ liệu
+    formData.append('title', title);
+    formData.append('slug', slug);
+    formData.append('description', document.getElementById('movieDescription').value);
+    formData.append('meta_description', document.getElementById('movieMetaDescription').value);
+    formData.append('release_year', document.getElementById('movieReleaseYear').value);
+    formData.append('duration', document.getElementById('movieDuration').value);
+    formData.append('trailer_url', document.getElementById('movieTrailerUrl').value);
+    formData.append('video_url', document.getElementById('movieVideoUrl').value);
+    formData.append('is_series', document.getElementById('movieIsSeries').checked);
+    formData.append('is_featured', document.getElementById('movieIsFeatured').checked);
 
-            try {
-                const url = currentEditingMovieId ? 
-                    `/api/movies/${currentEditingMovieId}` : '/api/movies';
-                const method = currentEditingMovieId ? 'PUT' : 'POST';
+    // Thêm các mảng dữ liệu
+    const genreIds = getSelectedValues('movieGenres');
+    genreIds.forEach(id => formData.append('genre_ids[]', id));
+    
+    const countryIds = getSelectedValues('movieCountries');
+    countryIds.forEach(id => formData.append('country_ids[]', id));
+    
+    const actorIds = getSelectedValues('movieActors');
+    actorIds.forEach(id => formData.append('actor_ids[]', id));
 
-                const response = await fetch(url, {
-                    method: method,
-                    body: formData
-                });
+    // Thêm file nếu có
+    const posterFile = document.getElementById('moviePosterFile').files[0];
+    if (posterFile) {
+        formData.append('moviePosterFile', posterFile);
+    }
 
-                const result = await response.json();
+    try {
+        const url = currentEditingMovieId ? 
+            `/api/movies/${currentEditingMovieId}` : '/api/movies';
+        const method = currentEditingMovieId ? 'PUT' : 'POST';
 
-                if (response.ok) {
-                    alert(currentEditingMovieId ? 
-                        'Cập nhật phim thành công!' : 'Thêm phim thành công!');
-                    closeMovieModal();
-                    loadMovies();
-                } else {
-                    alert('Lỗi: ' + (result.error || 'Không thể lưu phim'));
-                }
-            } catch (error) {
-                console.error('Error saving movie:', error);
-                alert('Lỗi khi lưu phim');
-            }
+        const response = await fetch(url, {
+            method: method,
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            alert(currentEditingMovieId ? 
+                'Cập nhật phim thành công!' : 'Thêm phim thành công!');
+            closeMovieModal();
+            loadMovies();
+        } else {
+            alert('Lỗi: ' + (result.error || 'Không thể lưu phim'));
         }
-
+    } catch (error) {
+        console.error('Error saving movie:', error);
+        alert('Lỗi khi lưu phim: ' + error.message);
+    }
+}
         // Lấy giá trị selected từ select multiple
         function getSelectedValues(selectId) {
             const select = document.getElementById(selectId);

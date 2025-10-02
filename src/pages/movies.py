@@ -33,10 +33,14 @@ def get_movies():
             search = request.args.get('search', '')
             
             query = """
-                SELECT m.*, 
-                       GROUP_CONCAT(DISTINCT g.name) as genres,
-                       GROUP_CONCAT(DISTINCT c.name) as countries,
-                       COUNT(DISTINCT e.id) as episode_count
+                SELECT 
+                    m.id, m.title, m.slug, m.description, m.meta_description,
+                    m.release_year, m.duration, m.poster_url, m.trailer_url,
+                    m.video_url, m.is_series, m.is_featured, m.average_rating,
+                    m.view_count, m.created_at, m.updated_at,
+                    COALESCE(GROUP_CONCAT(DISTINCT g.name), '') as genres,
+                    COALESCE(GROUP_CONCAT(DISTINCT c.name), '') as countries,
+                    COUNT(DISTINCT e.id) as episode_count
                 FROM movies m
                 LEFT JOIN movie_genres mg ON m.id = mg.movie_id
                 LEFT JOIN genres g ON mg.genre_id = g.id
@@ -82,7 +86,6 @@ def get_movies():
             return jsonify({'error': 'Database connection failed'}), 500
     except Error as e:
         return jsonify({'error': str(e)}), 500
-
 @movies_bp.route('/api/movies/<int:movie_id>', methods=['GET'])
 def get_movie(movie_id):
     try:
@@ -145,7 +148,7 @@ def create_movie():
         video_url = request.form.get('video_url')
         is_series = request.form.get('is_series') == 'true'
         is_featured = request.form.get('is_featured') == 'true'
-        genre_ids = request.form.getlist('genre_ids[]')  # Handle array from FormData
+        genre_ids = request.form.getlist('genre_ids[]')
         country_ids = request.form.getlist('country_ids[]')
         actor_ids = request.form.getlist('actor_ids[]')
 
@@ -157,42 +160,52 @@ def create_movie():
         poster_url = None
         if 'moviePosterFile' in request.files:
             file = request.files['moviePosterFile']
-            if file and allowed_file(file.filename):
-                # Generate unique filename
+            if file and file.filename != '' and allowed_file(file.filename):
                 filename = secure_filename(file.filename)
                 unique_filename = f"{uuid.uuid4().hex}_{filename}"
-                file_path = os.path.join(UPLOAD_FOLDER, unique_filename)
+                file_path = os.path.join(current_app.root_path, UPLOAD_FOLDER, unique_filename)
                 file.save(file_path)
-                # Generate URL for the saved file
                 poster_url = f"/{UPLOAD_FOLDER}/{unique_filename}"
 
-        # Insert movie into database
+        # Insert movie into database - ĐÚNG thứ tự với bảng movies
         cursor.execute("""
-            INSERT INTO movies (title, slug, description, meta_description, 
-                              release_year, duration, poster_url, trailer_url, 
-                              video_url, is_series, is_featured)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO movies (
+                title, slug, description, meta_description, 
+                release_year, duration, poster_url, trailer_url, 
+                video_url, is_series, is_featured
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (
-            title, slug, description, meta_description, release_year, duration,
-            poster_url, trailer_url, video_url, is_series, is_featured
+            title, slug, 
+            description if description else None, 
+            meta_description if meta_description else None,
+            release_year if release_year else None,
+            duration if duration else None,
+            poster_url,  # Có thể là None
+            trailer_url if trailer_url else None,
+            video_url if video_url else None,
+            is_series,
+            is_featured
         ))
 
         movie_id = cursor.lastrowid
 
         # Insert genres
         for genre_id in genre_ids:
-            cursor.execute("INSERT INTO movie_genres (movie_id, genre_id) VALUES (%s, %s)", 
-                          (movie_id, genre_id))
+            if genre_id:  # Chỉ thêm nếu genre_id không rỗng
+                cursor.execute("INSERT INTO movie_genres (movie_id, genre_id) VALUES (%s, %s)", 
+                              (movie_id, genre_id))
 
         # Insert countries
         for country_id in country_ids:
-            cursor.execute("INSERT INTO movie_countries (movie_id, country_id) VALUES (%s, %s)", 
-                          (movie_id, country_id))
+            if country_id:  # Chỉ thêm nếu country_id không rỗng
+                cursor.execute("INSERT INTO movie_countries (movie_id, country_id) VALUES (%s, %s)", 
+                              (movie_id, country_id))
 
         # Insert actors
         for actor_id in actor_ids:
-            cursor.execute("INSERT INTO movie_actors (movie_id, actor_id) VALUES (%s, %s)", 
-                          (movie_id, actor_id))
+            if actor_id:  # Chỉ thêm nếu actor_id không rỗng
+                cursor.execute("INSERT INTO movie_actors (movie_id, actor_id) VALUES (%s, %s)", 
+                              (movie_id, actor_id))
 
         connection.commit()
         cursor.close()
@@ -201,10 +214,13 @@ def create_movie():
         return jsonify({'id': movie_id, 'message': 'Movie created successfully'}), 201
 
     except Error as e:
-        return jsonify({'error': str(e)}), 500
+        if connection:
+            connection.rollback()
+        return jsonify({'error': f'Database error: {str(e)}'}), 500
     except Exception as e:
+        if connection:
+            connection.rollback()
         return jsonify({'error': f'Failed to process request: {str(e)}'}), 500
-
 @movies_bp.route('/api/movies/<int:movie_id>', methods=['PUT'])
 def update_movie(movie_id):
     try:
@@ -237,20 +253,21 @@ def update_movie(movie_id):
         poster_url = None
         if 'moviePosterFile' in request.files:
             file = request.files['moviePosterFile']
-            if file and allowed_file(file.filename):
+            if file and file.filename != '' and allowed_file(file.filename):
                 # Generate unique filename
                 filename = secure_filename(file.filename)
                 unique_filename = f"{uuid.uuid4().hex}_{filename}"
-                file_path = os.path.join(UPLOAD_FOLDER, unique_filename)
+                file_path = os.path.join(current_app.root_path, UPLOAD_FOLDER, unique_filename)
                 file.save(file_path)
                 poster_url = f"/{UPLOAD_FOLDER}/{unique_filename}"
-        else:
-            # Keep existing poster_url if no new file is uploaded
+        
+        # Nếu không có file mới, giữ poster_url cũ
+        if not poster_url:
             cursor.execute("SELECT poster_url FROM movies WHERE id = %s", (movie_id,))
             result = cursor.fetchone()
             poster_url = result[0] if result else None
 
-        # Update movie in database
+        # Update movie in database - ĐÚNG thứ tự với bảng movies
         cursor.execute("""
             UPDATE movies 
             SET title = %s, slug = %s, description = %s, meta_description = %s,
@@ -258,27 +275,39 @@ def update_movie(movie_id):
                 video_url = %s, is_series = %s, is_featured = %s
             WHERE id = %s
         """, (
-            title, slug, description, meta_description, release_year, duration,
-            poster_url, trailer_url, video_url, is_series, is_featured, movie_id
+            title, slug, 
+            description if description else None, 
+            meta_description if meta_description else None,
+            release_year if release_year else None,
+            duration if duration else None,
+            poster_url,
+            trailer_url if trailer_url else None,
+            video_url if video_url else None,
+            is_series,
+            is_featured,
+            movie_id
         ))
 
-        # Update genres
+        # Update genres - chỉ xóa và thêm lại nếu có genre_ids
         cursor.execute("DELETE FROM movie_genres WHERE movie_id = %s", (movie_id,))
         for genre_id in genre_ids:
-            cursor.execute("INSERT INTO movie_genres (movie_id, genre_id) VALUES (%s, %s)", 
-                          (movie_id, genre_id))
+            if genre_id:
+                cursor.execute("INSERT INTO movie_genres (movie_id, genre_id) VALUES (%s, %s)", 
+                              (movie_id, genre_id))
 
-        # Update countries
+        # Update countries - chỉ xóa và thêm lại nếu có country_ids
         cursor.execute("DELETE FROM movie_countries WHERE movie_id = %s", (movie_id,))
         for country_id in country_ids:
-            cursor.execute("INSERT INTO movie_countries (movie_id, country_id) VALUES (%s, %s)", 
-                          (movie_id, country_id))
+            if country_id:
+                cursor.execute("INSERT INTO movie_countries (movie_id, country_id) VALUES (%s, %s)", 
+                              (movie_id, country_id))
 
-        # Update actors
+        # Update actors - chỉ xóa và thêm lại nếu có actor_ids
         cursor.execute("DELETE FROM movie_actors WHERE movie_id = %s", (movie_id,))
         for actor_id in actor_ids:
-            cursor.execute("INSERT INTO movie_actors (movie_id, actor_id) VALUES (%s, %s)", 
-                          (movie_id, actor_id))
+            if actor_id:
+                cursor.execute("INSERT INTO movie_actors (movie_id, actor_id) VALUES (%s, %s)", 
+                              (movie_id, actor_id))
 
         connection.commit()
         cursor.close()
@@ -287,10 +316,13 @@ def update_movie(movie_id):
         return jsonify({'message': 'Movie updated successfully'}), 200
 
     except Error as e:
-        return jsonify({'error': str(e)}), 500
+        if connection:
+            connection.rollback()
+        return jsonify({'error': f'Database error: {str(e)}'}), 500
     except Exception as e:
+        if connection:
+            connection.rollback()
         return jsonify({'error': f'Failed to process request: {str(e)}'}), 500
-
 @movies_bp.route('/api/movies/<int:movie_id>', methods=['DELETE'])
 def delete_movie(movie_id):
     try:
