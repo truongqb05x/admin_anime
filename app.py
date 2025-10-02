@@ -1,7 +1,9 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 import os
 from src.pages.genres import genres_bp
 from src.pages.actors import actors_bp
+from src.pages.movies import movies_bp
+from src.pages.episodes import episodes_bp
 import mysql.connector
 from mysql.connector import Error
 
@@ -34,6 +36,8 @@ app.get_db_connection = get_db_connection
 # Register blueprints
 app.register_blueprint(genres_bp)
 app.register_blueprint(actors_bp)
+app.register_blueprint(movies_bp)
+app.register_blueprint(episodes_bp)
 
 # Routes render
 @app.route('/')
@@ -47,6 +51,15 @@ def the_loai_page():
 @app.route('/dien-vien')
 def dien_vien_page():
     return render_template('dienvien.html')
+
+@app.route('/phim')
+def phim_page():
+    return render_template('qlyphim.html')
+
+@app.route('/tap-phim')
+def tap_phim_page():
+    movie_id = request.args.get('movie_id', type=int)
+    return render_template('tapphim.html', movie_id=movie_id)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

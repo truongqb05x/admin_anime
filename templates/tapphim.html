@@ -6,899 +6,7 @@
     <title>Quản lý tập phim - Hệ thống quản trị phim</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --primary: #3f51b5;
-            --primary-dark: #303f9f;
-            --primary-light: #7986cb;
-            --secondary: #455a64;
-            --secondary-light: #718792;
-            --success: #4caf50;
-            --success-dark: #388e3c;
-            --danger: #f44336;
-            --danger-dark: #d32f2f;
-            --warning: #ff9800;
-            --warning-dark: #f57c00;
-            --info: #2196f3;
-            --light: #f5f5f5;
-            --dark: #263238;
-            --gray: #78909c;
-            --gray-light: #cfd8dc;
-            --sidebar-width: 260px;
-            --header-height: 70px;
-            --card-radius: 12px;
-            --transition: all 0.3s ease;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background-color: #f5f7fa;
-            color: var(--dark);
-            display: flex;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            width: var(--sidebar-width);
-            background: linear-gradient(180deg, var(--primary), var(--primary-dark));
-            color: white;
-            height: 100vh;
-            position: fixed;
-            transition: var(--transition);
-            z-index: 1000;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .sidebar-header {
-            padding: 25px 20px;
-            text-align: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .sidebar-header h2 {
-            font-size: 1.4rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-        }
-
-        .sidebar-header i {
-            margin-right: 10px;
-            font-size: 1.6rem;
-        }
-
-        .sidebar-menu {
-            padding: 20px 0;
-            flex-grow: 1;
-            overflow-y: auto;
-        }
-
-        .sidebar-menu ul {
-            list-style: none;
-        }
-
-        .sidebar-menu li {
-            margin-bottom: 5px;
-        }
-
-        .sidebar-menu a {
-            display: flex;
-            align-items: center;
-            padding: 14px 20px;
-            color: rgba(255, 255, 255, 0.85);
-            text-decoration: none;
-            transition: var(--transition);
-            position: relative;
-            font-weight: 500;
-            border-left: 3px solid transparent;
-        }
-
-        .sidebar-menu a:hover, .sidebar-menu a.active {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: white;
-            border-left-color: white;
-        }
-
-        .sidebar-menu i {
-            margin-right: 12px;
-            font-size: 1.1rem;
-            width: 20px;
-            text-align: center;
-        }
-
-        .sidebar-footer {
-            padding: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            text-align: center;
-            font-size: 0.85rem;
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        /* Main Content */
-        .main-content {
-            flex: 1;
-            margin-left: var(--sidebar-width);
-            transition: var(--transition);
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Header */
-        .header {
-            height: var(--header-height);
-            background-color: white;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 25px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .header-left h1 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--dark);
-            display: flex;
-            align-items: center;
-        }
-
-        .header-left i {
-            margin-right: 10px;
-            color: var(--primary);
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .search-box {
-            position: relative;
-        }
-
-        .search-box input {
-            padding: 10px 15px 10px 40px;
-            border-radius: 30px;
-            border: 1px solid var(--gray-light);
-            width: 250px;
-            transition: var(--transition);
-            font-size: 0.9rem;
-            background-color: #f9f9f9;
-        }
-
-        .search-box input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.1);
-            width: 300px;
-            background-color: white;
-        }
-
-        .search-box i {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--gray);
-        }
-
-        .notification {
-            position: relative;
-            cursor: pointer;
-        }
-
-        .notification i {
-            font-size: 1.3rem;
-            color: var(--gray);
-            transition: var(--transition);
-        }
-
-        .notification:hover i {
-            color: var(--primary);
-        }
-
-        .notification-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background-color: var(--danger);
-            color: white;
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            font-size: 0.7rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .user-profile {
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 30px;
-            transition: var(--transition);
-        }
-
-        .user-profile:hover {
-            background-color: rgba(0, 0, 0, 0.03);
-        }
-
-        .user-avatar {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 10px;
-            font-weight: bold;
-            font-size: 1rem;
-            box-shadow: 0 3px 8px rgba(63, 81, 181, 0.2);
-        }
-
-        .user-info {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .user-name {
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-
-        .user-role {
-            font-size: 0.8rem;
-            color: var(--gray);
-        }
-
-        /* Content */
-        .content {
-            padding: 25px;
-            flex-grow: 1;
-        }
-
-        /* Page Header */
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-        }
-
-        .page-title {
-            font-size: 1.8rem;
-            font-weight: 600;
-            color: var(--dark);
-        }
-
-        .page-actions {
-            display: flex;
-            gap: 15px;
-        }
-
-        /* Series Info Card */
-        .series-info {
-            background-color: white;
-            border-radius: var(--card-radius);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            padding: 25px;
-            margin-bottom: 25px;
-            display: flex;
-            gap: 20px;
-            align-items: center;
-        }
-
-        .series-poster {
-            width: 120px;
-            height: 160px;
-            border-radius: 8px;
-            object-fit: cover;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .series-details {
-            flex: 1;
-        }
-
-        .series-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-            color: var(--dark);
-        }
-
-        .series-meta {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-
-        .meta-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--gray);
-            font-size: 0.9rem;
-        }
-
-        .meta-item i {
-            color: var(--primary);
-        }
-
-        .series-description {
-            color: var(--gray);
-            line-height: 1.5;
-            margin-bottom: 15px;
-        }
-
-        .series-stats {
-            display: flex;
-            gap: 25px;
-        }
-
-        .stat-item {
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary);
-        }
-
-        .stat-label {
-            font-size: 0.85rem;
-            color: var(--gray);
-        }
-
-        /* Filter Bar */
-        .filter-bar {
-            background-color: white;
-            border-radius: var(--card-radius);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            padding: 20px;
-            margin-bottom: 25px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            align-items: center;
-        }
-
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            min-width: 180px;
-        }
-
-        .filter-label {
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: var(--gray);
-        }
-
-        .filter-select, .filter-input {
-            padding: 10px 12px;
-            border-radius: 8px;
-            border: 1px solid var(--gray-light);
-            font-size: 0.9rem;
-            background-color: white;
-        }
-
-        .filter-select:focus, .filter-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.1);
-        }
-
-        /* Buttons */
-        .btn {
-            padding: 9px 18px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            transition: var(--transition);
-            font-size: 0.85rem;
-        }
-
-        .btn i {
-            margin-right: 6px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
-            color: white;
-            box-shadow: 0 3px 8px rgba(63, 81, 181, 0.2);
-        }
-
-        .btn-primary:hover {
-            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
-            box-shadow: 0 5px 12px rgba(63, 81, 181, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .btn-success {
-            background: linear-gradient(135deg, var(--success), #66bb6a);
-            color: white;
-            box-shadow: 0 3px 8px rgba(76, 175, 80, 0.2);
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, var(--danger), #ef5350);
-            color: white;
-            box-shadow: 0 3px 8px rgba(244, 67, 54, 0.2);
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 1px solid var(--gray-light);
-            color: var(--dark);
-        }
-
-        .btn-outline:hover {
-            background-color: rgba(0, 0, 0, 0.03);
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-
-        /* Table */
-        .table-container {
-            background-color: white;
-            border-radius: var(--card-radius);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            overflow: hidden;
-            margin-bottom: 25px;
-            transition: var(--transition);
-        }
-
-        .table-container:hover {
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
-        }
-
-        .table-header {
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        .table-header h2 {
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: var(--dark);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            padding: 15px 20px;
-            text-align: left;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        th {
-            background-color: rgba(0, 0, 0, 0.02);
-            font-weight: 600;
-            color: var(--gray);
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        tr:hover {
-            background-color: rgba(0, 0, 0, 0.01);
-        }
-
-        .badge {
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            display: inline-block;
-        }
-
-        .badge-success {
-            background-color: rgba(76, 175, 80, 0.15);
-            color: var(--success-dark);
-        }
-
-        .badge-warning {
-            background-color: rgba(255, 152, 0, 0.15);
-            color: var(--warning-dark);
-        }
-
-        .badge-danger {
-            background-color: rgba(244, 67, 54, 0.15);
-            color: var(--danger-dark);
-        }
-
-        .badge-info {
-            background-color: rgba(33, 150, 243, 0.15);
-            color: var(--info);
-        }
-
-        .badge-primary {
-            background-color: rgba(63, 81, 181, 0.15);
-            color: var(--primary-dark);
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 6px;
-        }
-
-        .action-btn {
-            width: 34px;
-            height: 34px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: var(--transition);
-            font-size: 0.9rem;
-        }
-
-        .edit-btn {
-            background-color: rgba(63, 81, 181, 0.1);
-            color: var(--primary);
-        }
-
-        .delete-btn {
-            background-color: rgba(244, 67, 54, 0.1);
-            color: var(--danger);
-        }
-
-        .view-btn {
-            background-color: rgba(76, 175, 80, 0.1);
-            color: var(--success);
-        }
-
-        .play-btn {
-            background-color: rgba(255, 152, 0, 0.1);
-            color: var(--warning);
-        }
-
-        .edit-btn:hover {
-            background-color: var(--primary);
-            color: white;
-            transform: translateY(-2px);
-        }
-
-        .delete-btn:hover {
-            background-color: var(--danger);
-            color: white;
-            transform: translateY(-2px);
-        }
-
-        .view-btn:hover {
-            background-color: var(--success);
-            color: white;
-            transform: translateY(-2px);
-        }
-
-        .play-btn:hover {
-            background-color: var(--warning);
-            color: white;
-            transform: translateY(-2px);
-        }
-
-        .episode-thumbnail {
-            width: 80px;
-            height: 45px;
-            border-radius: 4px;
-            object-fit: cover;
-            background-color: var(--gray-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--gray);
-        }
-
-        .episode-number {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            background-color: var(--primary);
-            color: white;
-            border-radius: 50%;
-            font-weight: 600;
-            font-size: 0.8rem;
-        }
-
-        /* Pagination */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 20px;
-        }
-
-        .pagination-btn {
-            width: 38px;
-            height: 38px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: white;
-            border: 1px solid var(--gray-light);
-            color: var(--dark);
-            cursor: pointer;
-            transition: var(--transition);
-            font-size: 0.9rem;
-        }
-
-        .pagination-btn.active {
-            background-color: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
-        .pagination-btn:hover:not(.active) {
-            background-color: rgba(0, 0, 0, 0.03);
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-content {
-            background-color: white;
-            border-radius: var(--card-radius);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            width: 90%;
-            max-width: 600px;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .modal-header {
-            padding: 20px 25px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .modal-title {
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: var(--dark);
-        }
-
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: var(--gray);
-            transition: var(--transition);
-        }
-
-        .modal-close:hover {
-            color: var(--danger);
-        }
-
-        .modal-body {
-            padding: 25px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--dark);
-            font-size: 0.9rem;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 10px 12px;
-            border-radius: 8px;
-            border: 1px solid var(--gray-light);
-            font-size: 0.9rem;
-            transition: var(--transition);
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.1);
-        }
-
-        .form-textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        .form-select {
-            appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 12px center;
-            background-size: 16px;
-            padding-right: 40px;
-        }
-
-        .form-row {
-            display: flex;
-            gap: 20px;
-        }
-
-        .form-col {
-            flex: 1;
-        }
-
-        .video-preview {
-            width: 100%;
-            height: 200px;
-            background-color: var(--light);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--gray);
-            border: 2px dashed var(--gray-light);
-            margin-bottom: 15px;
-        }
-
-        .video-preview i {
-            font-size: 3rem;
-        }
-
-        .modal-footer {
-            padding: 20px 25px;
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
-            display: flex;
-            justify-content: flex-end;
-            gap: 15px;
-        }
-
-        /* Footer */
-        .footer {
-            padding: 18px 25px;
-            background-color: white;
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
-            text-align: center;
-            color: var(--gray);
-            font-size: 0.85rem;
-        }
-
-        /* Responsive */
-        @media (max-width: 992px) {
-            .sidebar {
-                width: 70px;
-            }
-            
-            .sidebar-header h2, .sidebar-menu span, .sidebar-footer {
-                display: none;
-            }
-            
-            .sidebar-menu i {
-                margin-right: 0;
-                font-size: 1.3rem;
-            }
-            
-            .sidebar-menu a {
-                justify-content: center;
-                padding: 18px;
-            }
-            
-            .main-content {
-                margin-left: 70px;
-            }
-            
-            .search-box input {
-                width: 200px;
-            }
-            
-            .search-box input:focus {
-                width: 250px;
-            }
-            
-            .series-info {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .series-meta {
-                justify-content: center;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .header-right {
-                gap: 15px;
-            }
-            
-            .search-box {
-                display: none;
-            }
-            
-            .user-info {
-                display: none;
-            }
-            
-            .filter-bar {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .filter-group {
-                min-width: auto;
-            }
-            
-            .series-stats {
-                justify-content: center;
-            }
-            
-            .form-row {
-                flex-direction: column;
-                gap: 0;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .page-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
-            }
-            
-            .page-actions {
-                width: 100%;
-                justify-content: space-between;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="../static/css/tapphim.css">
 </head>
 <body>
     <!-- Sidebar -->
@@ -932,7 +40,7 @@
             <div class="header-right">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Tìm kiếm tập phim...">
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm tập phim...">
                 </div>
                 <div class="notification">
                     <i class="fas fa-bell"></i>
@@ -954,100 +62,37 @@
             <div class="page-header">
                 <div class="page-title">Quản lý tập phim</div>
                 <div class="page-actions">
-                    <button class="btn btn-outline"><i class="fas fa-sync"></i> Làm mới</button>
+                    <button class="btn btn-outline" id="refreshBtn"><i class="fas fa-sync"></i> Làm mới</button>
                     <button class="btn btn-primary" id="addEpisodeBtn"><i class="fas fa-plus"></i> Thêm tập phim</button>
                 </div>
             </div>
 
             <!-- Series Info Card -->
-            <div class="series-info">
-                <img src="https://via.placeholder.com/120x160/3f51b5/ffffff?text=GOT" class="series-poster" alt="Game of Thrones">
-                <div class="series-details">
-                    <div class="series-title">Game of Thrones</div>
-                    <div class="series-meta">
-                        <div class="meta-item">
-                            <i class="fas fa-tv"></i>
-                            <span>Phim bộ</span>
-                        </div>
-                        <div class="meta-item">
-                            <i class="fas fa-calendar"></i>
-                            <span>2011 - 2019</span>
-                        </div>
-                        <div class="meta-item">
-                            <i class="fas fa-clock"></i>
-                            <span>57 phút/tập</span>
-                        </div>
-                        <div class="meta-item">
-                            <i class="fas fa-star"></i>
-                            <span>9.3/10</span>
-                        </div>
-                    </div>
-                    <div class="series-description">
-                        Cuộc chiến tranh giành quyền lực giữa các dòng họ quý tộc ở vùng đất Westeros. Khi mùa hè kéo dài hàng thập kỷ kết thúc, mùa đông lạnh giá và đáng sợ đang đến gần.
-                    </div>
-                    <div class="series-stats">
-                        <div class="stat-item">
-                            <div class="stat-value">8</div>
-                            <div class="stat-label">Mùa</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">73</div>
-                            <div class="stat-label">Tập</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">2.5M</div>
-                            <div class="stat-label">Lượt xem</div>
-                        </div>
-                    </div>
-                </div>
+            <div class="series-info" id="seriesInfo">
+                <div class="loading">Đang tải thông tin phim...</div>
             </div>
 
             <!-- Filter Bar -->
             <div class="filter-bar">
                 <div class="filter-group">
-                    <div class="filter-label">Mùa phim</div>
-                    <select class="filter-select" id="seasonFilter">
-                        <option value="">Tất cả mùa</option>
-                        <option value="1">Mùa 1</option>
-                        <option value="2">Mùa 2</option>
-                        <option value="3">Mùa 3</option>
-                        <option value="4">Mùa 4</option>
-                        <option value="5">Mùa 5</option>
-                        <option value="6">Mùa 6</option>
-                        <option value="7">Mùa 7</option>
-                        <option value="8">Mùa 8</option>
-                    </select>
-                </div>
-                <div class="filter-group">
                     <div class="filter-label">Sắp xếp</div>
-                    <select class="filter-select">
+                    <select class="filter-select" id="sortSelect">
                         <option value="episode_asc">Tập tăng dần</option>
                         <option value="episode_desc">Tập giảm dần</option>
                         <option value="newest">Mới nhất</option>
                         <option value="oldest">Cũ nhất</option>
-                        <option value="views_asc">Lượt xem ít nhất</option>
-                        <option value="views_desc">Lượt xem nhiều nhất</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <div class="filter-label">Trạng thái</div>
-                    <select class="filter-select">
-                        <option value="">Tất cả trạng thái</option>
-                        <option value="published">Đã xuất bản</option>
-                        <option value="draft">Bản nháp</option>
-                        <option value="scheduled">Lên lịch</option>
                     </select>
                 </div>
                 <div class="filter-group">
                     <div class="filter-label">Tìm kiếm</div>
-                    <input type="text" class="filter-input" placeholder="Nhập tên tập phim...">
+                    <input type="text" class="filter-input" id="filterSearch" placeholder="Nhập tên tập phim...">
                 </div>
             </div>
 
             <!-- Episodes Table -->
             <div class="table-container">
                 <div class="table-header">
-                    <h2>Danh sách tập phim (73 tập)</h2>
+                    <h2 id="episodeCount">Danh sách tập phim</h2>
                     <div>
                         <button class="btn btn-outline"><i class="fas fa-file-export"></i> Xuất Excel</button>
                     </div>
@@ -1058,181 +103,27 @@
                             <th>Tập</th>
                             <th>Thumbnail</th>
                             <th>Tên tập phim</th>
-                            <th>Mùa</th>
                             <th>Thời lượng</th>
-                            <th>Lượt xem</th>
-                            <th>Ngày phát hành</th>
-                            <th>Trạng thái</th>
+                            <th>Ngày tạo</th>
                             <th>Thao tác</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="episodesTableBody">
                         <tr>
-                            <td><span class="episode-number">1</span></td>
-                            <td>
-                                <div class="episode-thumbnail">
-                                    <i class="fas fa-play"></i>
-                                </div>
-                            </td>
-                            <td>Winter Is Coming</td>
-                            <td>Mùa 1</td>
-                            <td>62 phút</td>
-                            <td>1,245,678</td>
-                            <td>17/04/2011</td>
-                            <td><span class="badge badge-success">Đã xuất bản</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <div class="action-btn play-btn"><i class="fas fa-play"></i></div>
-                                    <div class="action-btn view-btn"><i class="fas fa-eye"></i></div>
-                                    <div class="action-btn edit-btn"><i class="fas fa-edit"></i></div>
-                                    <div class="action-btn delete-btn"><i class="fas fa-trash"></i></div>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><span class="episode-number">2</span></td>
-                            <td>
-                                <div class="episode-thumbnail">
-                                    <i class="fas fa-play"></i>
-                                </div>
-                            </td>
-                            <td>The Kingsroad</td>
-                            <td>Mùa 1</td>
-                            <td>56 phút</td>
-                            <td>1,123,456</td>
-                            <td>24/04/2011</td>
-                            <td><span class="badge badge-success">Đã xuất bản</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <div class="action-btn play-btn"><i class="fas fa-play"></i></div>
-                                    <div class="action-btn view-btn"><i class="fas fa-eye"></i></div>
-                                    <div class="action-btn edit-btn"><i class="fas fa-edit"></i></div>
-                                    <div class="action-btn delete-btn"><i class="fas fa-trash"></i></div>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><span class="episode-number">3</span></td>
-                            <td>
-                                <div class="episode-thumbnail">
-                                    <i class="fas fa-play"></i>
-                                </div>
-                            </td>
-                            <td>Lord Snow</td>
-                            <td>Mùa 1</td>
-                            <td>58 phút</td>
-                            <td>1,098,765</td>
-                            <td>01/05/2011</td>
-                            <td><span class="badge badge-success">Đã xuất bản</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <div class="action-btn play-btn"><i class="fas fa-play"></i></div>
-                                    <div class="action-btn view-btn"><i class="fas fa-eye"></i></div>
-                                    <div class="action-btn edit-btn"><i class="fas fa-edit"></i></div>
-                                    <div class="action-btn delete-btn"><i class="fas fa-trash"></i></div>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><span class="episode-number">1</span></td>
-                            <td>
-                                <div class="episode-thumbnail">
-                                    <i class="fas fa-play"></i>
-                                </div>
-                            </td>
-                            <td>The North Remembers</td>
-                            <td>Mùa 2</td>
-                            <td>53 phút</td>
-                            <td>987,654</td>
-                            <td>01/04/2012</td>
-                            <td><span class="badge badge-success">Đã xuất bản</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <div class="action-btn play-btn"><i class="fas fa-play"></i></div>
-                                    <div class="action-btn view-btn"><i class="fas fa-eye"></i></div>
-                                    <div class="action-btn edit-btn"><i class="fas fa-edit"></i></div>
-                                    <div class="action-btn delete-btn"><i class="fas fa-trash"></i></div>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><span class="episode-number">9</span></td>
-                            <td>
-                                <div class="episode-thumbnail">
-                                    <i class="fas fa-play"></i>
-                                </div>
-                            </td>
-                            <td>The Rains of Castamere</td>
-                            <td>Mùa 3</td>
-                            <td>51 phút</td>
-                            <td>2,345,678</td>
-                            <td>02/06/2013</td>
-                            <td><span class="badge badge-success">Đã xuất bản</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <div class="action-btn play-btn"><i class="fas fa-play"></i></div>
-                                    <div class="action-btn view-btn"><i class="fas fa-eye"></i></div>
-                                    <div class="action-btn edit-btn"><i class="fas fa-edit"></i></div>
-                                    <div class="action-btn delete-btn"><i class="fas fa-trash"></i></div>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><span class="episode-number">1</span></td>
-                            <td>
-                                <div class="episode-thumbnail">
-                                    <i class="fas fa-play"></i>
-                                </div>
-                            </td>
-                            <td>The Wars to Come</td>
-                            <td>Mùa 5</td>
-                            <td>52 phút</td>
-                            <td>876,543</td>
-                            <td>12/04/2015</td>
-                            <td><span class="badge badge-success">Đã xuất bản</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <div class="action-btn play-btn"><i class="fas fa-play"></i></div>
-                                    <div class="action-btn view-btn"><i class="fas fa-eye"></i></div>
-                                    <div class="action-btn edit-btn"><i class="fas fa-edit"></i></div>
-                                    <div class="action-btn delete-btn"><i class="fas fa-trash"></i></div>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><span class="episode-number">6</span></td>
-                            <td>
-                                <div class="episode-thumbnail">
-                                    <i class="fas fa-play"></i>
-                                </div>
-                            </td>
-                            <td>Beyond the Wall</td>
-                            <td>Mùa 7</td>
-                            <td>70 phút</td>
-                            <td>3,123,456</td>
-                            <td>20/08/2017</td>
-                            <td><span class="badge badge-success">Đã xuất bản</span></td>
-                            <td>
-                                <div class="action-buttons">
-                                    <div class="action-btn play-btn"><i class="fas fa-play"></i></div>
-                                    <div class="action-btn view-btn"><i class="fas fa-eye"></i></div>
-                                    <div class="action-btn edit-btn"><i class="fas fa-edit"></i></div>
-                                    <div class="action-btn delete-btn"><i class="fas fa-trash"></i></div>
-                                </div>
-                            </td>
+                            <td colspan="6" class="no-data">Đang tải dữ liệu...</td>
                         </tr>
                     </tbody>
                 </table>
                 
                 <!-- Pagination -->
                 <div class="pagination">
-                    <div class="pagination-btn"><i class="fas fa-chevron-left"></i></div>
+                    <div class="pagination-btn" id="prevPage"><i class="fas fa-chevron-left"></i></div>
                     <div class="pagination-btn active">1</div>
                     <div class="pagination-btn">2</div>
                     <div class="pagination-btn">3</div>
                     <div class="pagination-btn">4</div>
                     <div class="pagination-btn">5</div>
-                    <div class="pagination-btn"><i class="fas fa-chevron-right"></i></div>
+                    <div class="pagination-btn" id="nextPage"><i class="fas fa-chevron-right"></i></div>
                 </div>
             </div>
         </div>
@@ -1256,41 +147,17 @@
                         <label class="form-label" for="episodeMovie">Chọn phim *</label>
                         <select class="form-control form-select" id="episodeMovie" required>
                             <option value="">-- Chọn phim --</option>
-                            <option value="1" selected>Game of Thrones</option>
-                            <option value="2">Breaking Bad</option>
-                            <option value="3">Stranger Things</option>
-                            <option value="4">The Witcher</option>
-                            <option value="5">The Mandalorian</option>
                         </select>
                     </div>
                     
-                    <div class="form-row">
-                        <div class="form-col">
-                            <div class="form-group">
-                                <label class="form-label" for="episodeSeason">Mùa *</label>
-                                <select class="form-control form-select" id="episodeSeason" required>
-                                    <option value="1">Mùa 1</option>
-                                    <option value="2">Mùa 2</option>
-                                    <option value="3">Mùa 3</option>
-                                    <option value="4">Mùa 4</option>
-                                    <option value="5">Mùa 5</option>
-                                    <option value="6">Mùa 6</option>
-                                    <option value="7">Mùa 7</option>
-                                    <option value="8">Mùa 8</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-col">
-                            <div class="form-group">
-                                <label class="form-label" for="episodeNumber">Số tập *</label>
-                                <input type="number" class="form-control" id="episodeNumber" min="1" max="100" required>
-                            </div>
-                        </div>
+                    <div class="form-group">
+                        <label class="form-label" for="episodeNumber">Số tập *</label>
+                        <input type="number" class="form-control" id="episodeNumber" min="1" max="1000" required>
                     </div>
                     
                     <div class="form-group">
-                        <label class="form-label" for="episodeTitle">Tên tập phim *</label>
-                        <input type="text" class="form-control" id="episodeTitle" required placeholder="Nhập tên tập phim">
+                        <label class="form-label" for="episodeTitle">Tên tập phim</label>
+                        <input type="text" class="form-control" id="episodeTitle" placeholder="Nhập tên tập phim (nếu có)">
                     </div>
                     
                     <div class="form-group">
@@ -1299,25 +166,11 @@
                     </div>
                     
                     <div class="form-group">
-                        <label class="form-label">Video URL (Google Drive)</label>
+                        <label class="form-label" for="episodeVideoUrl">Video URL (Google Drive) *</label>
                         <div class="video-preview">
                             <i class="fas fa-video"></i>
                         </div>
-                        <input type="text" class="form-control" id="episodeVideoUrl" placeholder="https://drive.google.com/file/d/FILE_ID/view?usp=sharing">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label" for="episodeReleaseDate">Ngày phát hành</label>
-                        <input type="date" class="form-control" id="episodeReleaseDate">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label" for="episodeStatus">Trạng thái</label>
-                        <select class="form-control form-select" id="episodeStatus">
-                            <option value="published">Đã xuất bản</option>
-                            <option value="draft">Bản nháp</option>
-                            <option value="scheduled">Lên lịch</option>
-                        </select>
+                        <input type="text" class="form-control" id="episodeVideoUrl" placeholder="https://drive.google.com/file/d/FILE_ID/view?usp=sharing" required>
                     </div>
                 </form>
             </div>
@@ -1329,6 +182,382 @@
     </div>
 
     <script>
+        let currentMovieId = new URLSearchParams(window.location.search).get('movie_id');
+        let currentEditingEpisodeId = null;
+
+        // Khởi tạo trang
+        document.addEventListener('DOMContentLoaded', function() {
+            loadMoviesForSelect();
+            if (currentMovieId) {
+                loadMovieInfo(currentMovieId);
+                loadEpisodes(currentMovieId);
+            } else {
+                loadAllEpisodes();
+            }
+            
+            setupEventListeners();
+        });
+
+        // Thiết lập event listeners
+        function setupEventListeners() {
+            // Search
+            document.getElementById('searchInput').addEventListener('input', debounce(handleSearch, 300));
+            document.getElementById('filterSearch').addEventListener('input', debounce(handleSearch, 300));
+            
+            // Sort
+            document.getElementById('sortSelect').addEventListener('change', handleSort);
+            
+            // Refresh
+            document.getElementById('refreshBtn').addEventListener('click', refreshData);
+            
+            // Modal events
+            setupModalEvents();
+        }
+
+        // Tải danh sách phim cho select
+        async function loadMoviesForSelect() {
+            try {
+                const response = await fetch('/api/movies');
+                const movies = await response.json();
+                
+                const select = document.getElementById('episodeMovie');
+                select.innerHTML = '<option value="">-- Chọn phim --</option>';
+                
+                movies.forEach(movie => {
+                    const option = document.createElement('option');
+                    option.value = movie.id;
+                    option.textContent = movie.title;
+                    if (currentMovieId && movie.id == currentMovieId) {
+                        option.selected = true;
+                    }
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading movies:', error);
+                alert('Lỗi khi tải danh sách phim');
+            }
+        }
+
+        // Tải thông tin phim
+        async function loadMovieInfo(movieId) {
+            try {
+                const response = await fetch(`/api/movies/${movieId}`);
+                const movie = await response.json();
+                
+                if (!movie.error) {
+                    displayMovieInfo(movie);
+                } else {
+                    document.getElementById('seriesInfo').innerHTML = '<div class="error">Không tìm thấy thông tin phim</div>';
+                }
+            } catch (error) {
+                console.error('Error loading movie info:', error);
+                document.getElementById('seriesInfo').innerHTML = '<div class="error">Lỗi khi tải thông tin phim</div>';
+            }
+        }
+
+        // Hiển thị thông tin phim
+        function displayMovieInfo(movie) {
+            const seriesInfo = document.getElementById('seriesInfo');
+            const movieType = movie.is_series ? 'Phim bộ' : 'Phim lẻ';
+            const posterUrl = movie.poster_url || 'https://via.placeholder.com/120x160/3f51b5/ffffff?text=No+Image';
+            const description = movie.description || 'Chưa có mô tả cho phim này.';
+            const releaseYear = movie.release_year || 'N/A';
+            const duration = movie.duration ? movie.duration + ' phút' : 'N/A';
+            const rating = movie.average_rating ? movie.average_rating + '/10' : 'Chưa có';
+            const episodeCount = movie.episode_count || 0;
+            const viewCount = movie.view_count || 0;
+            
+            seriesInfo.innerHTML = `
+                <img src="${posterUrl}" class="series-poster" alt="${movie.title}">
+                <div class="series-details">
+                    <div class="series-title">${movie.title}</div>
+                    <div class="series-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-tv"></i>
+                            <span>${movieType}</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-calendar"></i>
+                            <span>${releaseYear}</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-clock"></i>
+                            <span>${duration}</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-star"></i>
+                            <span>${rating}</span>
+                        </div>
+                    </div>
+                    <div class="series-description">
+                        ${description}
+                    </div>
+                    <div class="series-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">${episodeCount}</div>
+                            <div class="stat-label">Tập</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${viewCount}</div>
+                            <div class="stat-label">Lượt xem</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Tải tập phim
+        async function loadEpisodes(movieId = null) {
+            try {
+                let url = '/api/episodes';
+                const params = new URLSearchParams();
+                
+                if (movieId) params.append('movie_id', movieId);
+                
+                const searchValue = document.getElementById('filterSearch').value;
+                if (searchValue) {
+                    params.append('search', searchValue);
+                }
+                
+                params.append('sort_by', document.getElementById('sortSelect').value);
+                
+                const response = await fetch(`${url}?${params}`);
+                const episodes = await response.json();
+                
+                displayEpisodes(episodes);
+            } catch (error) {
+                console.error('Error loading episodes:', error);
+                document.getElementById('episodesTableBody').innerHTML = `
+                    <tr>
+                        <td colspan="6" class="error">Lỗi khi tải danh sách tập phim</td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Tải tất cả tập phim
+        async function loadAllEpisodes() {
+            await loadEpisodes(null);
+        }
+
+        // Hiển thị tập phim
+        function displayEpisodes(episodes) {
+            const tbody = document.getElementById('episodesTableBody');
+            const episodeCount = document.getElementById('episodeCount');
+            
+            episodeCount.textContent = `Danh sách tập phim (${episodes.length} tập)`;
+            
+            if (episodes.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="no-data">Không có tập phim nào</td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = episodes.map(episode => `
+                <tr>
+                    <td><span class="episode-number">${episode.episode_number}</span></td>
+                    <td>
+                        <div class="episode-thumbnail">
+                            <i class="fas fa-play-circle"></i>
+                        </div>
+                    </td>
+                    <td>${episode.title || `Tập ${episode.episode_number}`}</td>
+                    <td>${episode.duration ? episode.duration + ' phút' : 'N/A'}</td>
+                    <td>${formatDate(episode.created_at)}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <div class="action-btn edit-btn" data-id="${episode.id}">
+                                <i class="fas fa-edit"></i>
+                            </div>
+                            <div class="action-btn delete-btn" data-id="${episode.id}">
+                                <i class="fas fa-trash"></i>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+            
+            // Thêm event listeners cho các nút
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    editEpisode(this.dataset.id);
+                });
+            });
+            
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    deleteEpisode(this.dataset.id);
+                });
+            });
+        }
+
+        // Định dạng ngày tháng
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('vi-VN');
+        }
+
+        // Xử lý tìm kiếm
+        function handleSearch() {
+            loadEpisodes(currentMovieId);
+        }
+
+        // Xử lý sắp xếp
+        function handleSort() {
+            loadEpisodes(currentMovieId);
+        }
+
+        // Làm mới dữ liệu
+        function refreshData() {
+            if (currentMovieId) {
+                loadMovieInfo(currentMovieId);
+                loadEpisodes(currentMovieId);
+            } else {
+                loadAllEpisodes();
+            }
+        }
+
+        // Debounce function
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Modal functions
+        function setupModalEvents() {
+            const episodeModal = document.getElementById('episodeModal');
+            const addEpisodeBtn = document.getElementById('addEpisodeBtn');
+            const closeModal = document.getElementById('closeModal');
+            const cancelBtn = document.getElementById('cancelBtn');
+            const saveEpisodeBtn = document.getElementById('saveEpisodeBtn');
+
+            addEpisodeBtn.addEventListener('click', function() {
+                openAddModal();
+            });
+
+            closeModal.addEventListener('click', closeEpisodeModal);
+            cancelBtn.addEventListener('click', closeEpisodeModal);
+
+            saveEpisodeBtn.addEventListener('click', saveEpisode);
+        }
+
+        function openAddModal() {
+            const modalTitle = document.getElementById('modalTitle');
+            modalTitle.textContent = 'Thêm tập phim mới';
+            currentEditingEpisodeId = null;
+            document.getElementById('episodeForm').reset();
+            document.getElementById('episodeModal').style.display = 'flex';
+        }
+
+        function closeEpisodeModal() {
+            document.getElementById('episodeModal').style.display = 'none';
+            document.getElementById('episodeForm').reset();
+            currentEditingEpisodeId = null;
+        }
+
+        async function editEpisode(episodeId) {
+            try {
+                const response = await fetch(`/api/episodes/${episodeId}`);
+                const episode = await response.json();
+                
+                if (!episode.error) {
+                    const modalTitle = document.getElementById('modalTitle');
+                    modalTitle.textContent = 'Chỉnh sửa tập phim';
+                    
+                    document.getElementById('episodeMovie').value = episode.movie_id;
+                    document.getElementById('episodeNumber').value = episode.episode_number;
+                    document.getElementById('episodeTitle').value = episode.title || '';
+                    document.getElementById('episodeDuration').value = episode.duration || '';
+                    document.getElementById('episodeVideoUrl').value = episode.video_url || '';
+                    
+                    currentEditingEpisodeId = episodeId;
+                    document.getElementById('episodeModal').style.display = 'flex';
+                } else {
+                    alert('Không tìm thấy tập phim');
+                }
+            } catch (error) {
+                console.error('Error loading episode:', error);
+                alert('Lỗi khi tải thông tin tập phim');
+            }
+        }
+
+        async function saveEpisode() {
+            const formData = {
+                movie_id: document.getElementById('episodeMovie').value,
+                episode_number: document.getElementById('episodeNumber').value,
+                title: document.getElementById('episodeTitle').value,
+                duration: document.getElementById('episodeDuration').value,
+                video_url: document.getElementById('episodeVideoUrl').value
+            };
+
+            if (!formData.movie_id || !formData.episode_number || !formData.video_url) {
+                alert('Vui lòng điền đầy đủ thông tin bắt buộc (Phim, số tập và URL video)!');
+                return;
+            }
+
+            try {
+                const url = currentEditingEpisodeId ? 
+                    `/api/episodes/${currentEditingEpisodeId}` : '/api/episodes';
+                const method = currentEditingEpisodeId ? 'PUT' : 'POST';
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert(currentEditingEpisodeId ? 
+                        'Cập nhật tập phim thành công!' : 'Thêm tập phim thành công!');
+                    closeEpisodeModal();
+                    refreshData();
+                } else {
+                    alert('Lỗi: ' + (result.error || 'Không thể lưu tập phim'));
+                }
+            } catch (error) {
+                console.error('Error saving episode:', error);
+                alert('Lỗi khi lưu tập phim');
+            }
+        }
+
+        async function deleteEpisode(episodeId) {
+            if (!confirm('Bạn có chắc chắn muốn xóa tập phim này không?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/episodes/${episodeId}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert('Xóa tập phim thành công!');
+                    refreshData();
+                } else {
+                    alert('Lỗi: ' + (result.error || 'Không thể xóa tập phim'));
+                }
+            } catch (error) {
+                console.error('Error deleting episode:', error);
+                alert('Lỗi khi xóa tập phim');
+            }
+        }
+
         // Xử lý sự kiện cho sidebar
         document.querySelectorAll('.sidebar-menu a').forEach(item => {
             item.addEventListener('click', function() {
@@ -1337,120 +566,6 @@
                 });
                 this.classList.add('active');
             });
-        });
-
-        // Xử lý modal thêm/sửa tập phim
-        const episodeModal = document.getElementById('episodeModal');
-        const addEpisodeBtn = document.getElementById('addEpisodeBtn');
-        const closeModal = document.getElementById('closeModal');
-        const cancelBtn = document.getElementById('cancelBtn');
-        const saveEpisodeBtn = document.getElementById('saveEpisodeBtn');
-        const modalTitle = document.getElementById('modalTitle');
-        const seasonFilter = document.getElementById('seasonFilter');
-
-        // Mở modal thêm tập phim
-        addEpisodeBtn.addEventListener('click', function() {
-            modalTitle.textContent = 'Thêm tập phim mới';
-            episodeModal.style.display = 'flex';
-        });
-
-        // Đóng modal
-        function closeEpisodeModal() {
-            episodeModal.style.display = 'none';
-            document.getElementById('episodeForm').reset();
-        }
-
-        closeModal.addEventListener('click', closeEpisodeModal);
-        cancelBtn.addEventListener('click', closeEpisodeModal);
-
-        // Lưu tập phim
-        saveEpisodeBtn.addEventListener('click', function() {
-            const episodeMovie = document.getElementById('episodeMovie').value;
-            const episodeSeason = document.getElementById('episodeSeason').value;
-            const episodeNumber = document.getElementById('episodeNumber').value;
-            const episodeTitle = document.getElementById('episodeTitle').value;
-            
-            if (!episodeMovie || !episodeSeason || !episodeNumber || !episodeTitle) {
-                alert('Vui lòng điền đầy đủ thông tin bắt buộc!');
-                return;
-            }
-            
-            // Xử lý lưu dữ liệu tập phim ở đây
-            console.log('Thông tin tập phim:', {
-                movie_id: episodeMovie,
-                season: episodeSeason,
-                episode_number: episodeNumber,
-                title: episodeTitle,
-                duration: document.getElementById('episodeDuration').value,
-                video_url: document.getElementById('episodeVideoUrl').value,
-                release_date: document.getElementById('episodeReleaseDate').value,
-                status: document.getElementById('episodeStatus').value
-            });
-            
-            alert('Thông tin tập phim đã được lưu thành công!');
-            closeEpisodeModal();
-        });
-
-        // Xử lý sự kiện cho các nút chỉnh sửa trong bảng
-        document.querySelectorAll('.edit-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                modalTitle.textContent = 'Chỉnh sửa tập phim';
-                
-                // Lấy dữ liệu từ hàng trong bảng
-                const row = this.closest('tr');
-                const episodeNumber = row.cells[0].textContent.trim();
-                const episodeTitle = row.cells[2].textContent;
-                const episodeSeason = row.cells[3].textContent.replace('Mùa ', '');
-                const episodeDuration = row.cells[4].textContent.replace(' phút', '');
-                
-                // Điền dữ liệu vào form
-                document.getElementById('episodeNumber').value = episodeNumber;
-                document.getElementById('episodeTitle').value = episodeTitle;
-                document.getElementById('episodeSeason').value = episodeSeason;
-                document.getElementById('episodeDuration').value = episodeDuration;
-                
-                episodeModal.style.display = 'flex';
-            });
-        });
-
-        // Xử lý sự kiện cho các nút xóa trong bảng
-        document.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const row = this.closest('tr');
-                const episodeTitle = row.cells[2].textContent;
-                
-                if (confirm(`Bạn có chắc chắn muốn xóa tập phim "${episodeTitle}" không?`)) {
-                    // Xử lý xóa tập phim ở đây
-                    alert(`Tập phim "${episodeTitle}" đã được xóa thành công!`);
-                }
-            });
-        });
-
-        // Xử lý sự kiện cho các nút xem trong bảng
-        document.querySelectorAll('.view-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const row = this.closest('tr');
-                const episodeTitle = row.cells[2].textContent;
-                alert(`Xem chi tiết tập phim: ${episodeTitle}`);
-            });
-        });
-
-        // Xử lý sự kiện cho các nút phát trong bảng
-        document.querySelectorAll('.play-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const row = this.closest('tr');
-                const episodeTitle = row.cells[2].textContent;
-                alert(`Phát tập phim: ${episodeTitle}`);
-            });
-        });
-
-        // Xử lý lọc theo mùa
-        seasonFilter.addEventListener('change', function() {
-            const selectedSeason = this.value;
-            if (selectedSeason) {
-                alert(`Đang lọc theo mùa: ${selectedSeason}`);
-                // Thực hiện lọc dữ liệu ở đây
-            }
         });
     </script>
 </body>
