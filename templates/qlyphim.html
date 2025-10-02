@@ -218,11 +218,7 @@
                             <div class="form-group">
                                 <label class="form-label" for="movieGenres">Thể loại</label>
                                 <select class="form-control form-select" id="movieGenres" multiple>
-                                    <option value="1">Hành động</option>
-                                    <option value="2">Lãng mạn</option>
-                                    <option value="3">Hài</option>
-                                    <option value="4">Kinh dị</option>
-                                    <option value="5">Khoa học viễn tưởng</option>
+                                    <!-- Populated dynamically via API -->
                                 </select>
                             </div>
                         </div>
@@ -243,11 +239,7 @@
                     <div class="form-group">
                         <label class="form-label" for="movieActors">Diễn viên</label>
                         <select class="form-control form-select" id="movieActors" multiple>
-                            <option value="1">Robert Downey Jr.</option>
-                            <option value="2">Chris Evans</option>
-                            <option value="3">Scarlett Johansson</option>
-                            <option value="4">Tom Holland</option>
-                            <option value="5">Zendaya</option>
+                            <!-- Populated dynamically via API -->
                         </select>
                     </div>
                     
@@ -284,6 +276,8 @@
         // Khởi tạo trang
         document.addEventListener('DOMContentLoaded', function() {
             loadMovies();
+            loadGenres();
+            loadActors(); // Load actors for form
             setupEventListeners();
             
             // Tự động tạo slug từ tên phim
@@ -295,6 +289,70 @@
                 document.getElementById('movieSlug').value = slug;
             });
         });
+
+        // Tải danh sách thể loại
+        async function loadGenres() {
+            try {
+                const response = await fetch('/api/genres');
+                const genres = await response.json();
+                
+                if (!genres.error) {
+                    // Populate genre filter dropdown
+                    const genreFilter = document.getElementById('genreFilter');
+                    genreFilter.innerHTML = '<option value="">Tất cả thể loại</option>';
+                    genres.forEach(genre => {
+                        const option = document.createElement('option');
+                        option.value = genre.id;
+                        option.textContent = genre.name;
+                        genreFilter.appendChild(option);
+                    });
+
+                    // Populate movie genres dropdown in form
+                    const movieGenres = document.getElementById('movieGenres');
+                    movieGenres.innerHTML = '';
+                    genres.forEach(genre => {
+                        const option = document.createElement('option');
+                        option.value = genre.id;
+                        option.textContent = genre.name;
+                        movieGenres.appendChild(option);
+                    });
+                } else {
+                    console.error('Error loading genres:', genres.error);
+                    document.getElementById('movieGenres').innerHTML = '<option value="">Không có thể loại</option>';
+                    document.getElementById('genreFilter').innerHTML = '<option value="">Tất cả thể loại</option>';
+                }
+            } catch (error) {
+                console.error('Error fetching genres:', error);
+                document.getElementById('movieGenres').innerHTML = '<option value="">Không có thể loại</option>';
+                document.getElementById('genreFilter').innerHTML = '<option value="">Tất cả thể loại</option>';
+            }
+        }
+
+        // Tải danh sách diễn viên
+        async function loadActors() {
+            try {
+                const response = await fetch('/api/actors');
+                const actors = await response.json();
+                
+                if (!actors.error) {
+                    // Populate movie actors dropdown in form
+                    const movieActors = document.getElementById('movieActors');
+                    movieActors.innerHTML = ''; // Clear any static options
+                    actors.forEach(actor => {
+                        const option = document.createElement('option');
+                        option.value = actor.id;
+                        option.textContent = actor.name;
+                        movieActors.appendChild(option);
+                    });
+                } else {
+                    console.error('Error loading actors:', actors.error);
+                    document.getElementById('movieActors').innerHTML = '<option value="">Không có diễn viên</option>';
+                }
+            } catch (error) {
+                console.error('Error fetching actors:', error);
+                document.getElementById('movieActors').innerHTML = '<option value="">Không có diễn viên</option>';
+            }
+        }
 
         // Thiết lập event listeners
         function setupEventListeners() {
@@ -402,7 +460,6 @@
             document.querySelectorAll('.episode-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const movieId = this.dataset.id;
-                    // Chuyển hướng đến trang tập phim với movie_id
                     window.location.href = `/tap-phim?movie_id=${movieId}`;
                 });
             });
@@ -470,13 +527,12 @@
                     document.getElementById('movieMetaDescription').value = movie.meta_description || '';
                     document.getElementById('movieReleaseYear').value = movie.release_year || '';
                     document.getElementById('movieDuration').value = movie.duration || '';
-                    // Note: moviePosterFile cannot be pre-filled due to security restrictions
                     document.getElementById('movieTrailerUrl').value = movie.trailer_url || '';
                     document.getElementById('movieVideoUrl').value = movie.video_url || '';
                     document.getElementById('movieIsSeries').checked = movie.is_series || false;
                     document.getElementById('movieIsFeatured').checked = movie.is_featured || false;
                     
-                    // Xử lý thể loại, quốc gia, diễn viên (cần parse từ string sang array)
+                    // Xử lý thể loại, quốc gia, diễn viên
                     if (movie.genre_ids) {
                         const genreIds = movie.genre_ids.split(',').map(id => id.trim());
                         setSelectedOptions('movieGenres', genreIds);
