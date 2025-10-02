@@ -6,6 +6,7 @@
     <title>Quản lý diễn viên - Hệ thống quản trị phim</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="../static/css/dienvien.css">
 </head>
 <body>
@@ -16,13 +17,13 @@
         </div>
         <div class="sidebar-menu">
             <ul>
-                <li><a href="dashboard.html"><i class="fas fa-home"></i> <span>Tổng quan</span></a></li>
-                <li><a href="movies.html"><i class="fas fa-video"></i> <span>Quản lý phim</span></a></li>
-                <li><a href="#" class="active"><i class="fas fa-theater-masks"></i> <span>Diễn viên</span></a></li>
-                <li><a href="genres.html"><i class="fas fa-list"></i> <span>Thể loại</span></a></li>
-                <li><a href="countries.html"><i class="fas fa-globe"></i> <span>Quốc gia</span></a></li>
-                <li><a href="episodes.html"><i class="fas fa-play-circle"></i> <span>Tập phim</span></a></li>
-                <li><a href="users.html"><i class="fas fa-users"></i> <span>Người dùng</span></a></li>
+                <li><a href="/"><i class="fas fa-home"></i> <span>Tổng quan</span></a></li>
+                <li><a href="/movies"><i class="fas fa-video"></i> <span>Quản lý phim</span></a></li>
+                <li><a href="/dien-vien" class="active"><i class="fas fa-theater-masks"></i> <span>Diễn viên</span></a></li>
+                <li><a href="/the-loai"><i class="fas fa-list"></i> <span>Thể loại</span></a></li>
+                <li><a href="/countries"><i class="fas fa-globe"></i> <span>Quốc gia</span></a></li>
+                <li><a href="/episodes"><i class="fas fa-play-circle"></i> <span>Tập phim</span></a></li>
+                <li><a href="/users"><i class="fas fa-users"></i> <span>Người dùng</span></a></li>
             </ul>
         </div>
         <div class="sidebar-footer">
@@ -40,7 +41,7 @@
             <div class="header-right">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Tìm kiếm diễn viên...">
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm diễn viên...">
                 </div>
                 <div class="notification">
                     <i class="fas fa-bell"></i>
@@ -81,7 +82,7 @@
             <div class="filter-bar">
                 <div class="filter-group">
                     <div class="filter-label">Sắp xếp</div>
-                    <select class="filter-select">
+                    <select class="filter-select" id="sortSelect">
                         <option value="name_asc">Tên A-Z</option>
                         <option value="name_desc">Tên Z-A</option>
                         <option value="movies_asc">Phim ít nhất</option>
@@ -92,7 +93,7 @@
                 </div>
                 <div class="filter-group">
                     <div class="filter-label">Số lượng phim</div>
-                    <select class="filter-select">
+                    <select class="filter-select" id="movieCountFilter">
                         <option value="">Tất cả</option>
                         <option value="1-5">1-5 phim</option>
                         <option value="6-10">6-10 phim</option>
@@ -102,91 +103,19 @@
                 </div>
                 <div class="filter-group">
                     <div class="filter-label">Tìm kiếm</div>
-                    <input type="text" class="filter-input" placeholder="Nhập tên diễn viên...">
+                    <input type="text" class="filter-input" id="searchFilter" placeholder="Nhập tên diễn viên...">
                 </div>
             </div>
 
             <!-- Actors Grid View -->
             <div class="actors-grid" id="gridView">
-                <div class="actor-card">
-                    <img src="https://via.placeholder.com/300x400/3f51b5/ffffff?text=RDJ" class="actor-photo" alt="Robert Downey Jr.">
-                    <div class="actor-info">
-                        <div class="actor-name">Robert Downey Jr.</div>
-                        <div class="actor-movies">15 phim</div>
-                        <div class="actor-actions">
-                            <div class="action-btn edit-btn"><i class="fas fa-edit"></i></div>
-                            <div class="action-btn delete-btn"><i class="fas fa-trash"></i></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="actor-card">
-                    <img src="https://via.placeholder.com/300x400/f44336/ffffff?text=CE" class="actor-photo" alt="Chris Evans">
-                    <div class="actor-info">
-                        <div class="actor-name">Chris Evans</div>
-                        <div class="actor-movies">12 phim</div>
-                        <div class="actor-actions">
-                            <div class="action-btn edit-btn"><i class="fas fa-edit"></i></div>
-                            <div class="action-btn delete-btn"><i class="fas fa-trash"></i></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="actor-card">
-                    <img src="https://via.placeholder.com/300x400/4caf50/ffffff?text=SJ" class="actor-photo" alt="Scarlett Johansson">
-                    <div class="actor-info">
-                        <div class="actor-name">Scarlett Johansson</div>
-                        <div class="actor-movies">18 phim</div>
-                        <div class="actor-actions">
-                            <div class="action-btn edit-btn"><i class="fas fa-edit"></i></div>
-                            <div class="action-btn delete-btn"><i class="fas fa-trash"></i></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="actor-card">
-                    <img src="https://via.placeholder.com/300x400/ff9800/ffffff?text=TH" class="actor-photo" alt="Tom Holland">
-                    <div class="actor-info">
-                        <div class="actor-name">Tom Holland</div>
-                        <div class="actor-movies">8 phim</div>
-                        <div class="actor-actions">
-                            <div class="action-btn edit-btn"><i class="fas fa-edit"></i></div>
-                            <div class="action-btn delete-btn"><i class="fas fa-trash"></i></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="actor-card">
-                    <img src="https://via.placeholder.com/300x400/2196f3/ffffff?text=Z" class="actor-photo" alt="Zendaya">
-                    <div class="actor-info">
-                        <div class="actor-name">Zendaya</div>
-                        <div class="actor-movies">6 phim</div>
-                        <div class="actor-actions">
-                            
-                            <div class="action-btn edit-btn"><i class="fas fa-edit"></i></div>
-                            <div class="action-btn delete-btn"><i class="fas fa-trash"></i></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="actor-card">
-                    <img src="https://via.placeholder.com/300x400/9c27b0/ffffff?text=BC" class="actor-photo" alt="Benedict Cumberbatch">
-                    <div class="actor-info">
-                        <div class="actor-name">Benedict Cumberbatch</div>
-                        <div class="actor-movies">14 phim</div>
-                        <div class="actor-actions">
-                            
-                            <div class="action-btn edit-btn"><i class="fas fa-edit"></i></div>
-                            <div class="action-btn delete-btn"><i class="fas fa-trash"></i></div>
-                        </div>
-                    </div>
-                </div>
+                <!-- Actors will be populated dynamically -->
             </div>
 
             <!-- Actors Table View -->
             <div class="table-container" id="tableView" style="display: none;">
                 <div class="table-header">
-                    <h2>Danh sách diễn viên (156 diễn viên)</h2>
+                    <h2 id="actorCount">Danh sách diễn viên</h2>
                     <div>
                         <button class="btn btn-outline"><i class="fas fa-file-export"></i> Xuất Excel</button>
                     </div>
@@ -202,89 +131,14 @@
                             <th>Thao tác</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td><img src="https://via.placeholder.com/45x45/3f51b5/ffffff?text=RDJ" class="actor-avatar" alt="Robert Downey Jr."></td>
-                            <td>Robert Downey Jr.</td>
-                            <td>15</td>
-                            <td>Iron Man, Avengers, Sherlock Holmes</td>
-                            <td>15/03/2020</td>
-                            <td>
-                                <div class="action-buttons">
-                                    
-                                    <div class="action-btn edit-btn"><i class="fas fa-edit"></i></div>
-                                    <div class="action-btn delete-btn"><i class="fas fa-trash"></i></div>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><img src="https://via.placeholder.com/45x45/f44336/ffffff?text=CE" class="actor-avatar" alt="Chris Evans"></td>
-                            <td>Chris Evans</td>
-                            <td>12</td>
-                            <td>Captain America, Avengers, Snowpiercer</td>
-                            <td>18/04/2020</td>
-                            <td>
-                                <div class="action-buttons">
-                                    
-                                    <div class="action-btn edit-btn"><i class="fas fa-edit"></i></div>
-                                    <div class="action-btn delete-btn"><i class="fas fa-trash"></i></div>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><img src="https://via.placeholder.com/45x45/4caf50/ffffff?text=SJ" class="actor-avatar" alt="Scarlett Johansson"></td>
-                            <td>Scarlett Johansson</td>
-                            <td>18</td>
-                            <td>Avengers, Lucy, Marriage Story</td>
-                            <td>22/05/2020</td>
-                            <td>
-                                <div class="action-buttons">
-                                    
-                                    <div class="action-btn edit-btn"><i class="fas fa-edit"></i></div>
-                                    <div class="action-btn delete-btn"><i class="fas fa-trash"></i></div>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><img src="https://via.placeholder.com/45x45/ff9800/ffffff?text=TH" class="actor-avatar" alt="Tom Holland"></td>
-                            <td>Tom Holland</td>
-                            <td>8</td>
-                            <td>Spider-Man, Avengers, Uncharted</td>
-                            <td>10/07/2021</td>
-                            <td>
-                                <div class="action-buttons">
-                                    
-                                    <div class="action-btn edit-btn"><i class="fas fa-edit"></i></div>
-                                    <div class="action-btn delete-btn"><i class="fas fa-trash"></i></div>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><img src="https://via.placeholder.com/45x45/2196f3/ffffff?text=Z" class="actor-avatar" alt="Zendaya"></td>
-                            <td>Zendaya</td>
-                            <td>6</td>
-                            <td>Spider-Man, Dune, Euphoria</td>
-                            <td>05/09/2021</td>
-                            <td>
-                                <div class="action-buttons">
-                                    
-                                    <div class="action-btn edit-btn"><i class="fas fa-edit"></i></div>
-                                    <div class="action-btn delete-btn"><i class="fas fa-trash"></i></div>
-                                </div>
-                            </td>
-                        </tr>
+                    <tbody id="actorsTableBody">
+                        <!-- Actors will be populated dynamically -->
                     </tbody>
                 </table>
                 
                 <!-- Pagination -->
-                <div class="pagination">
-                    <div class="pagination-btn"><i class="fas fa-chevron-left"></i></div>
-                    <div class="pagination-btn active">1</div>
-                    <div class="pagination-btn">2</div>
-                    <div class="pagination-btn">3</div>
-                    <div class="pagination-btn">4</div>
-                    <div class="pagination-btn">5</div>
-                    <div class="pagination-btn"><i class="fas fa-chevron-right"></i></div>
+                <div class="pagination" id="pagination">
+                    <!-- Pagination buttons will be populated dynamically -->
                 </div>
             </div>
         </div>
@@ -303,10 +157,9 @@
                 <button class="modal-close" id="closeModal">&times;</button>
             </div>
             <div class="modal-body">
-                <form id="actorForm">
+                <form id="actorForm" enctype="multipart/form-data">
                     <div class="form-group">
-                        <label class="form-label" for="actorName">Tên diễn viên *</label>
-                        <input type="text" class="form-control" id="actorName" required>
+<input type="text" class="form-control" id="actorName" name="name" required>
                     </div>
                     
                     <div class="form-group">
@@ -315,7 +168,7 @@
                             <div class="photo-preview" id="photoPreview">
                                 <i class="fas fa-user"></i>
                             </div>
-                            <input type="file" id="photoUpload" accept="image/*" style="display: none;">
+                            <input type="file" id="photoUpload" name="photo" accept="image/*" style="display: none;">
                             <button type="button" class="upload-btn" id="uploadTrigger">
                                 <i class="fas fa-upload"></i> Tải ảnh lên
                             </button>
@@ -324,18 +177,13 @@
                     
                     <div class="form-group">
                         <label class="form-label" for="actorPhotoUrl">URL ảnh</label>
-                        <input type="text" class="form-control" id="actorPhotoUrl" placeholder="Hoặc nhập URL ảnh trực tiếp">
+                        <input type="text" class="form-control" id="actorPhotoUrl" name="photo_url" placeholder="Hoặc nhập URL ảnh trực tiếp">
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label" for="actorMovies">Phim đã tham gia</label>
-                        <select class="form-control form-select" id="actorMovies" multiple>
-                            <option value="1">Avengers: Endgame</option>
-                            <option value="2">Spider-Man: No Way Home</option>
-                            <option value="3">The Batman</option>
-                            <option value="4">Dune: Part Two</option>
-                            <option value="5">Oppenheimer</option>
-                            <option value="6">Game of Thrones</option>
+                        <select class="form-control form-select" id="actorMovies" name="movie_ids" multiple>
+                            <!-- Movies will be populated dynamically -->
                         </select>
                         <small style="color: var(--gray); font-size: 0.8rem;">Giữ Ctrl để chọn nhiều phim</small>
                     </div>
@@ -349,108 +197,232 @@
     </div>
 
     <script>
-        // Xử lý sự kiện cho sidebar
-        document.querySelectorAll('.sidebar-menu a').forEach(item => {
-            item.addEventListener('click', function() {
-                document.querySelectorAll('.sidebar-menu a').forEach(link => {
-                    link.classList.remove('active');
-                });
-                this.classList.add('active');
-            });
-        });
+        let currentActorId = null;
+        let currentView = 'grid';
 
-        // Xử lý chuyển đổi giữa chế độ xem lưới và bảng
-        const viewOptions = document.querySelectorAll('.view-option');
-        const gridView = document.getElementById('gridView');
-        const tableView = document.getElementById('tableView');
+        // Fetch and display actors
+        function fetchActors(page = 1, sort = 'name_asc', search = '', movieCount = '') {
+            $.ajax({
+                url: '/api/actors',
+                method: 'GET',
+                success: function(data) {
+                    const actors = data;
+                    $('#gridView').empty();
+                    $('#actorsTableBody').empty();
+                    $('#actorCount').text(`Danh sách diễn viên (${actors.length} diễn viên)`);
 
-        viewOptions.forEach(option => {
-            option.addEventListener('click', function() {
-                const viewType = this.getAttribute('data-view');
-                
-                // Cập nhật trạng thái active
-                viewOptions.forEach(opt => opt.classList.remove('active'));
-                this.classList.add('active');
-                
-                // Hiển thị view tương ứng
-                if (viewType === 'grid') {
-                    gridView.style.display = 'grid';
-                    tableView.style.display = 'none';
-                } else {
-                    gridView.style.display = 'none';
-                    tableView.style.display = 'block';
+                    actors.forEach(actor => {
+                        // Grid view
+                        $('#gridView').append(`
+                            <div class="actor-card" data-id="${actor.id}">
+                                <img src="${actor.photo_url || 'https://via.placeholder.com/300x400'}" class="actor-photo" alt="${actor.name}">
+                                <div class="actor-info">
+                                    <div class="actor-name">${actor.name}</div>
+                                    <div class="actor-movies">${actor.movie_count} phim</div>
+                                    <div class="actor-actions">
+                                        <div class="action-btn edit-btn" data-id="${actor.id}"><i class="fas fa-edit"></i></div>
+                                        <div class="action-btn delete-btn" data-id="${actor.id}"><i class="fas fa-trash"></i></div>
+                                    </div>
+                                </div>
+                            </div>
+                        `);
+
+                        // Table view
+                        $('#actorsTableBody').append(`
+                            <tr data-id="${actor.id}">
+                                <td><img src="${actor.photo_url || 'https://via.placeholder.com/45x45'}" class="actor-avatar" alt="${actor.name}"></td>
+                                <td>${actor.name}</td>
+                                <td>${actor.movie_count}</td>
+                                <td>${actor.notable_movies || ''}</td>
+                                <td>${actor.created_at}</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <div class="action-btn edit-btn" data-id="${actor.id}"><i class="fas fa-edit"></i></div>
+                                        <div class="action-btn delete-btn" data-id="${actor.id}"><i class="fas fa-trash"></i></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        `);
+                    });
+
+                    // Simple pagination (client-side for simplicity)
+                    const totalPages = Math.ceil(actors.length / 10);
+                    $('#pagination').empty();
+                    if (totalPages > 1) {
+                        $('#pagination').append('<div class="pagination-btn"><i class="fas fa-chevron-left"></i></div>');
+                        for (let i = 1; i <= totalPages; i++) {
+                            $('#pagination').append(`<div class="pagination-btn ${i === page ? 'active' : ''}">${i}</div>`);
+                        }
+                        $('#pagination').append('<div class="pagination-btn"><i class="fas fa-chevron-right"></i></div>');
+                    }
+                },
+                error: function(xhr) {
+                    alert('Không thể tải danh sách diễn viên: ' + xhr.responseJSON.error);
                 }
             });
-        });
-
-        // Xử lý modal thêm/sửa diễn viên
-        const actorModal = document.getElementById('actorModal');
-        const addActorBtn = document.getElementById('addActorBtn');
-        const closeModal = document.getElementById('closeModal');
-        const cancelBtn = document.getElementById('cancelBtn');
-        const saveActorBtn = document.getElementById('saveActorBtn');
-        const modalTitle = document.getElementById('modalTitle');
-        const uploadTrigger = document.getElementById('uploadTrigger');
-        const photoUpload = document.getElementById('photoUpload');
-        const photoPreview = document.getElementById('photoPreview');
-
-        // Mở modal thêm diễn viên
-        addActorBtn.addEventListener('click', function() {
-            modalTitle.textContent = 'Thêm diễn viên mới';
-            actorModal.style.display = 'flex';
-        });
-
-        // Đóng modal
-        function closeActorModal() {
-            actorModal.style.display = 'none';
-            document.getElementById('actorForm').reset();
-            photoPreview.innerHTML = '<i class="fas fa-user"></i>';
         }
 
-        closeModal.addEventListener('click', closeActorModal);
-        cancelBtn.addEventListener('click', closeActorModal);
+        // Fetch movies for the modal
+        function fetchMovies() {
+            $.ajax({
+                url: '/api/movies',
+                method: 'GET',
+                success: function(data) {
+                    $('#actorMovies').empty();
+                    data.forEach(movie => {
+                        $('#actorMovies').append(`<option value="${movie.id}">${movie.title}</option>`);
+                    });
+                },
+                error: function(xhr) {
+                    alert('Không thể tải danh sách phim: ' + xhr.responseJSON.error);
+                }
+            });
+        }
 
-        // Xử lý tải ảnh lên
-        uploadTrigger.addEventListener('click', function() {
+        // Sidebar menu handling
+        $('.sidebar-menu a').on('click', function() {
+            $('.sidebar-menu a').removeClass('active');
+            $(this).addClass('active');
+        });
+
+        // View toggle handling
+        $('.view-option').on('click', function() {
+            const viewType = $(this).data('view');
+            $('.view-option').removeClass('active');
+            $(this).addClass('active');
+            
+            if (viewType === 'grid') {
+                $('#gridView').css('display', 'grid');
+                $('#tableView').css('display', 'none');
+                currentView = 'grid';
+            } else {
+                $('#gridView').css('display', 'none');
+                $('#tableView').css('display', 'block');
+                currentView = 'table';
+            }
+        });
+
+        // Modal handling
+        const actorModal = $('#actorModal');
+        const addActorBtn = $('#addActorBtn');
+        const closeModal = $('#closeModal');
+        const cancelBtn = $('#cancelBtn');
+        const saveActorBtn = $('#saveActorBtn');
+        const modalTitle = $('#modalTitle');
+        const uploadTrigger = $('#uploadTrigger');
+        const photoUpload = $('#photoUpload');
+        const photoPreview = $('#photoPreview');
+
+        // Open modal for adding actor
+        addActorBtn.on('click', function() {
+            modalTitle.text('Thêm diễn viên mới');
+            $('#actorForm')[0].reset();
+            photoPreview.html('<i class="fas fa-user"></i>');
+            currentActorId = null;
+            fetchMovies();
+            actorModal.css('display', 'flex');
+        });
+
+        // Close modal
+        function closeActorModal() {
+            actorModal.css('display', 'none');
+            $('#actorForm')[0].reset();
+            photoPreview.html('<i class="fas fa-user"></i>');
+            currentActorId = null;
+        }
+
+        closeModal.on('click', closeActorModal);
+        cancelBtn.on('click', closeActorModal);
+
+        // Handle file upload preview
+        uploadTrigger.on('click', function() {
             photoUpload.click();
         });
 
-        photoUpload.addEventListener('change', function(e) {
+        photoUpload.on('change', function(e) {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    photoPreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                    photoPreview.html(`<img src="${e.target.result}" alt="Preview">`);
                 };
                 reader.readAsDataURL(file);
             }
         });
 
-        // Lưu diễn viên
-        saveActorBtn.addEventListener('click', function() {
-            // Xử lý lưu dữ liệu diễn viên ở đây
-            alert('Thông tin diễn viên đã được lưu thành công!');
-            closeActorModal();
-        });
+        // Save actor (add or update)
+        saveActorBtn.on('click', function() {
+            const formData = new FormData($('#actorForm')[0]);
+            const url = currentActorId ? `/api/actors/${currentActorId}` : '/api/actors';
+            const method = currentActorId ? 'PUT' : 'POST';
 
-        // Xử lý sự kiện cho các nút chỉnh sửa trong bảng/lưới
-        document.querySelectorAll('.edit-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                modalTitle.textContent = 'Chỉnh sửa diễn viên';
-                // Điền dữ liệu diễn viên vào form
-                actorModal.style.display = 'flex';
-            });
-        });
-
-        // Xử lý sự kiện cho các nút xóa trong bảng/lưới
-        document.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                if (confirm('Bạn có chắc chắn muốn xóa diễn viên này không?')) {
-                    // Xử lý xóa diễn viên ở đây
-                    alert('Diễn viên đã được xóa thành công!');
+            $.ajax({
+                url: url,
+                method: method,
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    alert(response.message);
+                    closeActorModal();
+                    fetchActors();
+                },
+                error: function(xhr) {
+                    alert('Lỗi: ' + xhr.responseJSON.error);
                 }
             });
         });
+
+        // Edit actor
+        $(document).on('click', '.edit-btn', function() {
+            currentActorId = $(this).data('id');
+            const row = $(this).closest(currentView === 'grid' ? '.actor-card' : 'tr');
+            const name = row.find(currentView === 'grid' ? '.actor-name' : 'td:eq(1)').text();
+            const photo_url = row.find(currentView === 'grid' ? '.actor-photo' : '.actor-avatar').attr('src');
+
+            modalTitle.text('Chỉnh sửa diễn viên');
+            $('#actorName').val(name);
+            $('#actorPhotoUrl').val(photo_url);
+            photoPreview.html(`<img src="${photo_url}" alt="Preview">`);
+            fetchMovies();
+
+            // Fetch associated movies
+            $.ajax({
+                url: `/api/actors/${currentActorId}`,
+                method: 'GET',
+                success: function(actor) {
+                    const movieIds = actor.notable_movies ? actor.notable_movies.split(', ').map(title => {
+                        return $('#actorMovies option').filter(function() { return $(this).text() === title; }).val();
+                    }) : [];
+                    $('#actorMovies').val(movieIds);
+                    actorModal.css('display', 'flex');
+                }
+            });
+        });
+
+        // Delete actor
+        $(document).on('click', '.delete-btn', function() {
+            const id = $(this).data('id');
+            const name = $(this).closest(currentView === 'grid' ? '.actor-card' : 'tr')
+                .find(currentView === 'grid' ? '.actor-name' : 'td:eq(1)').text();
+
+            if (confirm(`Bạn có chắc chắn muốn xóa diễn viên "${name}" không?`)) {
+                $.ajax({
+                    url: `/api/actors/${id}`,
+                    method: 'DELETE',
+                    success: function(response) {
+                        alert(response.message);
+                        fetchActors();
+                    },
+                    error: function(xhr) {
+                        alert('Lỗi: ' + xhr.responseJSON.error);
+                    }
+                });
+            }
+        });
+
+        // Initial fetch
+        fetchActors();
     </script>
 </body>
 </html>
