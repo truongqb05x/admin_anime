@@ -4,6 +4,7 @@ from src.pages.genres import genres_bp
 from src.pages.actors import actors_bp
 from src.pages.movies import movies_bp
 from src.pages.episodes import episodes_bp
+from src.pages.countries import countries_bp
 import mysql.connector
 from mysql.connector import Error
 
@@ -38,7 +39,7 @@ app.register_blueprint(genres_bp)
 app.register_blueprint(actors_bp)
 app.register_blueprint(movies_bp)
 app.register_blueprint(episodes_bp)
-
+app.register_blueprint(countries_bp)  
 # Routes render
 @app.route('/')
 def home():
@@ -55,6 +56,9 @@ def dien_vien_page():
 @app.route('/phim')
 def phim_page():
     return render_template('qlyphim.html')
+@app.route('/quoc-gia')
+def quoc_gia_page():
+    return render_template('quocgia.html')
 
 @app.route('/tap-phim')
 def tap_phim_page():
