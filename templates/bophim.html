@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Quản lý Phim Hoạt Hình</title>
+    <link rel="stylesheet" href="../static/css/pages/bophim.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-film fa-2x"></i>
+            <h2>Anime Admin</h2>
+        </div>
+        <div class="sidebar-menu">
+            <ul>
+                <li><a href="#"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a></li>
+                <li><a href="#" class="active"><i class="fas fa-film"></i> <span>Quản lý Phim</span></a></li>
+                <li><a href="#"><i class="fas fa-tags"></i> <span>Blog</span></a></li>
+                <li><a href="#"><i class="fas fa-chart-bar"></i> <span>Thống kê</span></a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <h1>Quản lý Phim Anime</h1>
+            </div>
+            <div class="header-right">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm phim...">
+                </div>
+                <div class="user-profile">
+                    <div class="user-avatar">AD</div>
+                    <span>Admin User</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content">
+            <div class="page-title">
+                <h2>Danh sách Phim</h2>
+                <button class="btn btn-primary" id="addAnimeBtn"><i class="fas fa-plus"></i> Thêm phim mới</button>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="statusFilter">Trạng thái</label>
+                    <select id="statusFilter">
+                        <option value="">Tất cả</option>
+                        <option value="ongoing">Đang chiếu</option>
+                        <option value="completed">Hoàn thành</option>
+                        <option value="upcoming">Sắp chiếu</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="yearFilter">Năm phát hành</label>
+                    <select id="yearFilter">
+                        <option value="">Tất cả</option>
+                        <option value="2023">2023</option>
+                        <option value="2022">2022</option>
+                        <option value="2021">2021</option>
+                        <option value="2020">2020</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="featuredFilter">Nổi bật</label>
+                    <select id="featuredFilter">
+                        <option value="">Tất cả</option>
+                        <option value="true">Có</option>
+                        <option value="false">Không</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="sortBy">Sắp xếp</label>
+                    <select id="sortBy">
+                        <option value="title">Tiêu đề A-Z</option>
+                        <option value="-title">Tiêu đề Z-A</option>
+                        <option value="-rating">Đánh giá cao nhất</option>
+                        <option value="-total_views">Lượt xem nhiều nhất</option>
+                        <option value="-created_at">Mới nhất</option>
+                        <option value="created_at">Cũ nhất</option>
+                    </select>
+                </div>
+                <div class="filter-group filter-actions">
+                    <label>&nbsp;</label>
+                    <div class="filter-buttons">
+                        <button class="btn btn-primary" id="applyFiltersBtn">Áp dụng</button>
+                        <button class="btn" id="resetFiltersBtn">Đặt lại</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Anime Table -->
+            <div class="table-container">
+                <div class="table-header">
+                    <div class="table-title">Danh sách phim anime</div>
+                    <div>
+                        <span id="totalRecords">Hiển thị 0/0 bản ghi</span>
+                    </div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Hình ảnh</th>
+                            <th>Tiêu đề</th>
+                            <th>Năm</th>
+                            <th>Trạng thái</th>
+                            <th>Tập</th>
+                            <th>Đánh giá</th>
+                            <th>Lượt xem</th>
+                            <th>Nổi bật</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="animeTableBody">
+                        <!-- Data will be populated by JavaScript -->
+                    </tbody>
+                </table>
+                <div class="pagination" id="pagination">
+                    <!-- Pagination will be generated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Anime Modal -->
+    <div class="modal" id="animeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Thêm phim mới</h3>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="animeForm">
+                    <input type="hidden" id="animeId">
+                    <div class="form-group">
+                        <label for="title">Tiêu đề *</label>
+                        <input type="text" id="title" required oninput="generateSlug()">
+                    </div>
+                    <div class="form-group">
+                        <label for="slug">Slug *</label>
+                        <input type="text" id="slug" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Mô tả</label>
+                        <textarea id="description"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="release_year">Năm phát hành</label>
+                            <input type="number" id="release_year" min="1900" max="2030">
+                        </div>
+                        <div class="form-group">
+                            <label for="status">Trạng thái</label>
+                            <select id="status">
+                                <option value="ongoing">Đang chiếu</option>
+                                <option value="completed">Hoàn thành</option>
+                                <option value="upcoming">Sắp chiếu</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="total_episodes">Tổng số tập</label>
+                            <input type="number" id="total_episodes" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="duration_per_episode">Thời lượng mỗi tập (phút)</label>
+                            <input type="number" id="duration_per_episode" min="0">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="genres">Thể loại</label>
+                        <div class="multi-select-container" id="genresContainer">
+                            <div class="multi-select-input" id="genresInput">
+                                <!-- Selected genres will appear here -->
+                            </div>
+                            <div class="multi-select-dropdown" id="genresDropdown">
+                                <!-- Genre options will appear here -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="studios">Studio</label>
+                        <div class="multi-select-container" id="studiosContainer">
+                            <div class="multi-select-input" id="studiosInput">
+                                <!-- Selected studios will appear here -->
+                            </div>
+                            <div class="multi-select-dropdown" id="studiosDropdown">
+                                <!-- Studio options will appear here -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="directors">Đạo diễn</label>
+                        <div class="multi-select-container" id="directorsContainer">
+                            <div class="multi-select-input" id="directorsInput">
+                                <!-- Selected directors will appear here -->
+                            </div>
+                            <div class="multi-select-dropdown" id="directorsDropdown">
+                                <!-- Director options will appear here -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="actors">Diễn viên</label>
+                        <div class="multi-select-container" id="actorsContainer">
+                            <div class="multi-select-input" id="actorsInput">
+                                <!-- Selected actors will appear here -->
+                            </div>
+                            <div class="multi-select-dropdown" id="actorsDropdown">
+                                <!-- Actor options will appear here -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="country">Quốc gia</label>
+                        <input type="text" id="country" value="Nhật Bản">
+                    </div>
+                    <div class="form-group">
+                        <label for="poster_image">Poster</label>
+                        <div class="file-input-container">
+                            <div class="file-input-wrapper">
+                                <input type="file" id="poster_image" accept="image/*">
+                                <label for="poster_image" class="file-input-label">
+                                    <i class="fas fa-upload"></i> Chọn file poster
+                                </label>
+                            </div>
+                            <img id="poster_preview" class="file-preview" src="" alt="Poster preview">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="cover_image">Ảnh bìa</label>
+                        <div class="file-input-container">
+                            <div class="file-input-wrapper">
+                                <input type="file" id="cover_image" accept="image/*">
+                                <label for="cover_image" class="file-input-label">
+                                    <i class="fas fa-upload"></i> Chọn file ảnh bìa
+                                </label>
+                            </div>
+                            <img id="cover_preview" class="file-preview" src="" alt="Cover preview">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="featured" class="checkbox-label">
+                            <input type="checkbox" id="featured">
+                            <span>Phim nổi bật</span>
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" id="cancelBtn">Hủy</button>
+                <button class="btn btn-primary" id="saveAnimeBtn">Lưu</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data - in a real app, this would come from an API
+        const animeData = [
+            {
+                id: 1,
+                title: "One Piece: Film Red",
+                slug: "one-piece-film-red",
+                description: "Phim điện ảnh One Piece mới nhất",
+                poster_image: "https://example.com/poster1.jpg",
+                release_year: 2022,
+                status: "completed",
+                total_episodes: 1,
+                duration_per_episode: 115,
+                genres: ["Hành động", "Phiêu lưu", "Hài hước"],
+                studios: ["Toei Animation"],
+                directors: ["Gorō Taniguchi"],
+                actors: ["Mayumi Tanaka", "Kazuya Nakai", "Akemi Okamura"],
+                country: "Nhật Bản",
+                rating: 4.5,
+                total_views: 245678,
+                total_ratings: 1200,
+                featured: true,
+                created_at: "2023-10-15"
+            },
+            {
+                id: 2,
+                title: "Suzume no Tojimari",
+                slug: "suzume-no-tojimari",
+                description: "Phim mới của đạo diễn Makoto Shinkai",
+                poster_image: "https://example.com/poster2.jpg",
+                release_year: 2022,
+                status: "completed",
+                total_episodes: 1,
+                duration_per_episode: 122,
+                genres: ["Lãng mạn", "Kỳ ảo", "Phiêu lưu"],
+                studios: ["CoMix Wave Films"],
+                directors: ["Makoto Shinkai"],
+                actors: ["Nanoka Hara", "Hokuto Matsumura", "Eri Fukatsu"],
+                country: "Nhật Bản",
+                rating: 4.7,
+                total_views: 189432,
+                total_ratings: 980,
+                featured: true,
+                created_at: "2023-10-12"
+            },
+            {
+                id: 3,
+                title: "Jujutsu Kaisen 0",
+                slug: "jujutsu-kaisen-0",
+                description: "Phim tiền truyện của Jujutsu Kaisen",
+                poster_image: "https://example.com/poster3.jpg",
+                release_year: 2021,
+                status: "completed",
+                total_episodes: 1,
+                duration_per_episode: 105,
+                genres: ["Hành động", "Siêu nhiên", "Kinh dị"],
+                studios: ["MAPPA"],
+                directors: ["Sunghoo Park"],
+                actors: ["Megumi Ogata", "Kana Hanazawa", "Yūichi Nakamura"],
+                country: "Nhật Bản",
+                rating: 4.8,
+                total_views: 312567,
+                total_ratings: 1500,
+                featured: true,
+                created_at: "2023-10-08"
+            },
+            {
+                id: 4,
+                title: "Spy x Family Part 2",
+                slug: "spy-x-family-part-2",
+                description: "Phần 2 của Spy x Family",
+                poster_image: "https://example.com/poster4.jpg",
+                release_year: 2023,
+                status: "ongoing",
+                total_episodes: 13,
+                duration_per_episode: 24,
+                genres: ["Hành động", "Hài hước", "Gia đình"],
+                studios: ["Wit Studio", "CloverWorks"],
+                directors: ["Kazuhiro Furuhashi"],
+                actors: ["Takuya Eguchi", "Atsumi Tanezaki", "Saori Hayami"],
+                country: "Nhật Bản",
+                rating: 4.6,
+                total_views: 198765,
+                total_ratings: 1100,
+                featured: false,
+                created_at: "2023-10-05"
+            },
+            {
+                id: 5,
+                title: "Chainsaw Man",
+                slug: "chainsaw-man",
+                description: "Câu chuyện về Denji và Pochita",
+                poster_image: "https://example.com/poster5.jpg",
+                release_year: 2022,
+                status: "completed",
+                total_episodes: 12,
+                duration_per_episode: 24,
+                genres: ["Hành động", "Kinh dị", "Kỳ ảo"],
+                studios: ["MAPPA"],
+                directors: ["Ryu Nakayama"],
+                actors: ["Kikunosuke Toya", "Tomori Kusunoki", "Shogo Sakata"],
+                country: "Nhật Bản",
+                rating: 4.4,
+                total_views: 278543,
+                total_ratings: 1350,
+                featured: true,
+                created_at: "2023-09-28"
+            },
+            {
+                id: 6,
+                title: "Bocchi the Rock!",
+                slug: "bocchi-the-rock",
+                description: "Câu chuyện về cô gái nhút nhát Hitori Gotoh",
+                poster_image: "https://example.com/poster6.jpg",
+                release_year: 2022,
+                status: "completed",
+                total_episodes: 12,
+                duration_per_episode: 24,
+                genres: ["Âm nhạc", "Hài hước", "Đời thường"],
+                studios: ["CloverWorks"],
+                directors: ["Keiichirō Saitō"],
+                actors: ["Yoshino Aoyama", "Saku Mizuno", "Seika Inoue"],
+                country: "Nhật Bản",
+                rating: 4.3,
+                total_views: 156789,
+                total_ratings: 850,
+                featured: false,
+                created_at: "2023-09-25"
+            }
+        ];
+
+        // Data for multi-select options
+        const genreOptions = [
+            "Hành động", "Phiêu lưu", "Hài hước", "Lãng mạn", "Kỳ ảo", "Siêu nhiên", 
+            "Kinh dị", "Âm nhạc", "Đời thường", "Gia đình", "Học đường", "Viễn tưởng"
+        ];
+        
+        const studioOptions = [
+            "Toei Animation", "MAPPA", "Wit Studio", "CloverWorks", "CoMix Wave Films",
+            "Studio Ghibli", "Kyoto Animation", "A-1 Pictures", "Madhouse", "Bones"
+        ];
+        
+        const directorOptions = [
+            "Gorō Taniguchi", "Makoto Shinkai", "Sunghoo Park", "Kazuhiro Furuhashi",
+            "Ryu Nakayama", "Keiichirō Saitō", "Hayao Miyazaki", "Naoko Yamada"
+        ];
+        
+        const actorOptions = [
+            "Mayumi Tanaka", "Kazuya Nakai", "Akemi Okamura", "Nanoka Hara", 
+            "Hokuto Matsumura", "Eri Fukatsu", "Megumi Ogata", "Kana Hanazawa",
+            "Yūichi Nakamura", "Takuya Eguchi", "Atsumi Tanezaki", "Saori Hayami",
+            "Kikunosuke Toya", "Tomori Kusunoki", "Shogo Sakata", "Yoshino Aoyama",
+            "Saku Mizuno", "Seika Inoue"
+        ];
+
+        // DOM Elements
+        const animeTableBody = document.getElementById('animeTableBody');
+        const animeModal = document.getElementById('animeModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const animeForm = document.getElementById('animeForm');
+        const addAnimeBtn = document.getElementById('addAnimeBtn');
+        const closeModal = document.getElementById('closeModal');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const saveAnimeBtn = document.getElementById('saveAnimeBtn');
+        const searchInput = document.getElementById('searchInput');
+        const statusFilter = document.getElementById('statusFilter');
+        const yearFilter = document.getElementById('yearFilter');
+        const featuredFilter = document.getElementById('featuredFilter');
+        const sortBy = document.getElementById('sortBy');
+        const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+        const resetFiltersBtn = document.getElementById('resetFiltersBtn');
+        const pagination = document.getElementById('pagination');
+        const totalRecords = document.getElementById('totalRecords');
+        const posterImageInput = document.getElementById('poster_image');
+        const coverImageInput = document.getElementById('cover_image');
+        const posterPreview = document.getElementById('poster_preview');
+        const coverPreview = document.getElementById('cover_preview');
+
+        // Current state
+        let currentPage = 1;
+        const itemsPerPage = 5;
+        let filteredData = [...animeData];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            renderAnimeTable();
+            setupEventListeners();
+            initializeMultiSelects();
+        });
+
+        // Setup event listeners
+        function setupEventListeners() {
+            addAnimeBtn.addEventListener('click', openAddModal);
+            closeModal.addEventListener('click', closeAnimeModal);
+            cancelBtn.addEventListener('click', closeAnimeModal);
+            saveAnimeBtn.addEventListener('click', saveAnime);
+            searchInput.addEventListener('input', applyFilters);
+            applyFiltersBtn.addEventListener('click', applyFilters);
+            resetFiltersBtn.addEventListener('click', resetFilters);
+            
+            // File input handlers
+            posterImageInput.addEventListener('change', function(e) {
+                handleFileSelect(e, posterPreview);
+            });
+            
+            coverImageInput.addEventListener('change', function(e) {
+                handleFileSelect(e, coverPreview);
+            });
+            
+            // Close modal when clicking outside
+            window.addEventListener('click', function(event) {
+                if (event.target === animeModal) {
+                    closeAnimeModal();
+                }
+            });
+        }
+
+        // Initialize multi-select components
+        function initializeMultiSelects() {
+            // Initialize genres multi-select
+            initializeMultiSelect('genres', genreOptions);
+            
+            // Initialize studios multi-select
+            initializeMultiSelect('studios', studioOptions);
+            
+            // Initialize directors multi-select
+            initializeMultiSelect('directors', directorOptions);
+            
+            // Initialize actors multi-select
+            initializeMultiSelect('actors', actorOptions);
+        }
+
+        // Initialize a multi-select component
+        function initializeMultiSelect(type, options) {
+            const container = document.getElementById(`${type}Container`);
+            const input = document.getElementById(`${type}Input`);
+            const dropdown = document.getElementById(`${type}Dropdown`);
+            
+            // Populate dropdown with options
+            options.forEach(option => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'multi-select-option';
+                optionElement.textContent = option;
+                optionElement.addEventListener('click', function() {
+                    addSelectedItem(type, option);
+                    dropdown.style.display = 'none';
+                });
+                dropdown.appendChild(optionElement);
+            });
+            
+            // Show dropdown when input is clicked
+            input.addEventListener('click', function(e) {
+                e.stopPropagation();
+                dropdown.style.display = 'block';
+            });
+            
+            // Hide dropdown when clicking outside
+            document.addEventListener('click', function() {
+                dropdown.style.display = 'none';
+            });
+        }
+
+        // Add item to multi-select
+        function addSelectedItem(type, value) {
+            const input = document.getElementById(`${type}Input`);
+            
+            // Check if item is already selected
+            const existingItems = input.querySelectorAll('.selected-item');
+            for (let item of existingItems) {
+                if (item.textContent.includes(value)) {
+                    return; // Item already selected
+                }
+            }
+            
+            // Create selected item
+            const selectedItem = document.createElement('div');
+            selectedItem.className = 'selected-item';
+            selectedItem.innerHTML = `
+                ${value}
+                <span class="remove-item" onclick="removeSelectedItem(this)">&times;</span>
+            `;
+            input.appendChild(selectedItem);
+        }
+
+        // Remove item from multi-select
+        function removeSelectedItem(element) {
+            element.parentElement.remove();
+        }
+
+        // Get selected values from multi-select
+        function getSelectedValues(type) {
+            const input = document.getElementById(`${type}Input`);
+            const selectedItems = input.querySelectorAll('.selected-item');
+            const values = [];
+            
+            selectedItems.forEach(item => {
+                // Extract text without the remove button
+                const text = item.textContent.trim();
+                values.push(text);
+            });
+            
+            return values;
+        }
+
+        // Set selected values for multi-select
+        function setSelectedValues(type, values) {
+            const input = document.getElementById(`${type}Input`);
+            input.innerHTML = '';
+            
+            if (values && values.length > 0) {
+                values.forEach(value => {
+                    addSelectedItem(type, value);
+                });
+            }
+        }
+
+        // Handle file selection and preview
+        function handleFileSelect(event, previewElement) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewElement.src = e.target.result;
+                    previewElement.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Generate slug from title
+        function generateSlug() {
+            const title = document.getElementById('title').value;
+            const slugField = document.getElementById('slug');
+            
+            if (title && slugField) {
+                // Convert to lowercase, remove accents, replace spaces with hyphens
+                const slug = title
+                    .toLowerCase()
+                    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Remove accents
+                    .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+                    .replace(/\s+/g, '-') // Replace spaces with hyphens
+                    .replace(/-+/g, '-') // Replace multiple hyphens with single
+                    .trim();
+                
+                slugField.value = slug;
+            }
+        }
+
+        // Render anime table
+        function renderAnimeTable() {
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const currentData = filteredData.slice(startIndex, endIndex);
+            
+            animeTableBody.innerHTML = '';
+            
+            if (currentData.length === 0) {
+                animeTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="9" style="text-align: center;">Không có dữ liệu</td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            currentData.forEach(anime => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <img src="${anime.poster_image || 'https://via.placeholder.com/60x80?text=No+Image'}" 
+                             alt="${anime.title}" class="thumbnail">
+                    </td>
+                    <td>${anime.title}</td>
+                    <td>${anime.release_year}</td>
+                    <td><span class="status ${anime.status}">${getStatusText(anime.status)}</span></td>
+                    <td>${anime.total_episodes}</td>
+                    <td>${anime.rating} ⭐</td>
+                    <td>${formatNumber(anime.total_views)}</td>
+                    <td>${anime.featured ? '<i class="fas fa-star featured"></i>' : ''}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn view" onclick="viewEpisodes(${anime.id})">
+                                <i class="fas fa-eye"></i> Xem
+                            </button>
+                            <button class="action-btn edit" onclick="editAnime(${anime.id})">
+                                <i class="fas fa-edit"></i> Sửa
+                            </button>
+                            <button class="action-btn delete" onclick="deleteAnime(${anime.id})">
+                                <i class="fas fa-trash"></i> Xóa
+                            </button>
+                        </div>
+                    </td>
+                `;
+                animeTableBody.appendChild(row);
+            });
+            
+            updatePagination();
+            updateTotalRecords();
+        }
+
+        // Get status text in Vietnamese
+        function getStatusText(status) {
+            switch(status) {
+                case 'ongoing': return 'Đang chiếu';
+                case 'completed': return 'Hoàn thành';
+                case 'upcoming': return 'Sắp chiếu';
+                default: return status;
+            }
+        }
+
+        // Format number with commas
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        // Update pagination
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            
+            pagination.innerHTML = '';
+            
+            if (totalPages <= 1) return;
+            
+            // Previous button
+            const prevBtn = document.createElement('button');
+            prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderAnimeTable();
+                }
+            });
+            pagination.appendChild(prevBtn);
+            
+            // Page buttons
+            for (let i = 1; i <= totalPages; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.textContent = i;
+                pageBtn.classList.toggle('active', i === currentPage);
+                pageBtn.addEventListener('click', () => {
+                    currentPage = i;
+                    renderAnimeTable();
+                });
+                pagination.appendChild(pageBtn);
+            }
+            
+            // Next button
+            const nextBtn = document.createElement('button');
+            nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+            nextBtn.disabled = currentPage === totalPages;
+            nextBtn.addEventListener('click', () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderAnimeTable();
+                }
+            });
+            pagination.appendChild(nextBtn);
+        }
+
+        // Update total records text
+        function updateTotalRecords() {
+            const startIndex = (currentPage - 1) * itemsPerPage + 1;
+            const endIndex = Math.min(currentPage * itemsPerPage, filteredData.length);
+            totalRecords.textContent = `Hiển thị ${startIndex}-${endIndex} của ${filteredData.length} bản ghi`;
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const statusValue = statusFilter.value;
+            const yearValue = yearFilter.value;
+            const featuredValue = featuredFilter.value;
+            const sortValue = sortBy.value;
+            
+            filteredData = animeData.filter(anime => {
+                const matchesSearch = anime.title.toLowerCase().includes(searchTerm) || 
+                                    anime.slug.toLowerCase().includes(searchTerm);
+                const matchesStatus = !statusValue || anime.status === statusValue;
+                const matchesYear = !yearValue || anime.release_year.toString() === yearValue;
+                const matchesFeatured = featuredValue === '' || 
+                                      (featuredValue === 'true' && anime.featured) || 
+                                      (featuredValue === 'false' && !anime.featured);
+                
+                return matchesSearch && matchesStatus && matchesYear && matchesFeatured;
+            });
+            
+            // Sort data
+            if (sortValue) {
+                const [field, direction] = sortValue.startsWith('-') ? 
+                    [sortValue.substring(1), 'desc'] : [sortValue, 'asc'];
+                
+                filteredData.sort((a, b) => {
+                    let aVal = a[field];
+                    let bVal = b[field];
+                    
+                    if (typeof aVal === 'string') {
+                        aVal = aVal.toLowerCase();
+                        bVal = bVal.toLowerCase();
+                    }
+                    
+                    if (aVal < bVal) return direction === 'asc' ? -1 : 1;
+                    if (aVal > bVal) return direction === 'asc' ? 1 : -1;
+                    return 0;
+                });
+            }
+            
+            currentPage = 1;
+            renderAnimeTable();
+        }
+
+        // Reset filters
+        function resetFilters() {
+            searchInput.value = '';
+            statusFilter.value = '';
+            yearFilter.value = '';
+            featuredFilter.value = '';
+            sortBy.value = 'title';
+            applyFilters();
+        }
+
+        // Open add modal
+        function openAddModal() {
+            modalTitle.textContent = 'Thêm phim mới';
+            animeForm.reset();
+            document.getElementById('animeId').value = '';
+            
+            // Clear multi-selects
+            setSelectedValues('genres', []);
+            setSelectedValues('studios', []);
+            setSelectedValues('directors', []);
+            setSelectedValues('actors', []);
+            
+            // Clear file previews
+            posterPreview.style.display = 'none';
+            coverPreview.style.display = 'none';
+            
+            animeModal.style.display = 'flex';
+        }
+
+        // Close modal
+        function closeAnimeModal() {
+            animeModal.style.display = 'none';
+        }
+
+        // Edit anime
+        function editAnime(id) {
+            const anime = animeData.find(a => a.id === id);
+            if (!anime) return;
+            
+            modalTitle.textContent = 'Chỉnh sửa phim';
+            document.getElementById('animeId').value = anime.id;
+            document.getElementById('title').value = anime.title;
+            document.getElementById('slug').value = anime.slug;
+            document.getElementById('description').value = anime.description || '';
+            document.getElementById('release_year').value = anime.release_year;
+            document.getElementById('status').value = anime.status;
+            document.getElementById('total_episodes').value = anime.total_episodes;
+            document.getElementById('duration_per_episode').value = anime.duration_per_episode;
+            document.getElementById('country').value = anime.country || 'Nhật Bản';
+            document.getElementById('featured').checked = anime.featured;
+            
+            // Set multi-select values
+            setSelectedValues('genres', anime.genres || []);
+            setSelectedValues('studios', anime.studios || []);
+            setSelectedValues('directors', anime.directors || []);
+            setSelectedValues('actors', anime.actors || []);
+            
+            // Set file previews if available
+            if (anime.poster_image) {
+                posterPreview.src = anime.poster_image;
+                posterPreview.style.display = 'block';
+            }
+            
+            if (anime.cover_image) {
+                coverPreview.src = anime.cover_image;
+                coverPreview.style.display = 'block';
+            }
+            
+            animeModal.style.display = 'flex';
+        }
+
+        // Save anime
+        function saveAnime() {
+            const id = document.getElementById('animeId').value;
+            const title = document.getElementById('title').value;
+            const slug = document.getElementById('slug').value;
+            
+            if (!title || !slug) {
+                alert('Vui lòng nhập tiêu đề và slug');
+                return;
+            }
+            
+            const anime = {
+                id: id ? parseInt(id) : Date.now(),
+                title,
+                slug,
+                description: document.getElementById('description').value,
+                release_year: parseInt(document.getElementById('release_year').value) || 0,
+                status: document.getElementById('status').value,
+                total_episodes: parseInt(document.getElementById('total_episodes').value) || 0,
+                duration_per_episode: parseInt(document.getElementById('duration_per_episode').value) || 0,
+                genres: getSelectedValues('genres'),
+                studios: getSelectedValues('studios'),
+                directors: getSelectedValues('directors'),
+                actors: getSelectedValues('actors'),
+                country: document.getElementById('country').value,
+                featured: document.getElementById('featured').checked,
+                rating: 0,
+                total_views: 0,
+                total_ratings: 0,
+                created_at: new Date().toISOString().split('T')[0]
+            };
+            
+            // Handle file uploads (in a real app, this would upload to server)
+            if (posterImageInput.files.length > 0) {
+                // In a real app, you would upload the file and get the URL
+                anime.poster_image = URL.createObjectURL(posterImageInput.files[0]);
+            }
+            
+            if (coverImageInput.files.length > 0) {
+                // In a real app, you would upload the file and get the URL
+                anime.cover_image = URL.createObjectURL(coverImageInput.files[0]);
+            }
+            
+            if (id) {
+                // Update existing anime
+                const index = animeData.findIndex(a => a.id === parseInt(id));
+                if (index !== -1) {
+                    // Preserve some existing data
+                    anime.rating = animeData[index].rating;
+                    anime.total_views = animeData[index].total_views;
+                    anime.total_ratings = animeData[index].total_ratings;
+                    
+                    animeData[index] = anime;
+                }
+            } else {
+                // Add new anime
+                animeData.push(anime);
+            }
+            
+            closeAnimeModal();
+            renderAnimeTable();
+            alert(id ? 'Cập nhật phim thành công!' : 'Thêm phim mới thành công!');
+        }
+
+        // Delete anime
+        function deleteAnime(id) {
+            if (confirm('Bạn có chắc chắn muốn xóa phim này?')) {
+                const index = animeData.findIndex(a => a.id === id);
+                if (index !== -1) {
+                    animeData.splice(index, 1);
+                    renderAnimeTable();
+                    alert('Xóa phim thành công!');
+                }
+            }
+        }
+
+        // View episodes (placeholder function)
+        function viewEpisodes(id) {
+            alert(`Xem danh sách tập của phim ID: ${id}`);
+        }
+    </script>
+</body>
+</html>
