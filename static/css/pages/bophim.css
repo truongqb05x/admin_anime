@@ -648,3 +648,7 @@
             border-radius: 4px;
             display: none;
         }
+textarea {
+    white-space: pre-wrap; /* Giữ nguyên khoảng trắng và xuống dòng */
+    word-wrap: break-word;
+}

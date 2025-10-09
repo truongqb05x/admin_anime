@@ -501,143 +501,143 @@
             animeModal.style.display = 'none';
         }
 
-        // Edit anime
-        async function editAnime(id) {
-            try {
-                const response = await fetch(`/api/anime/${id}`);
-                if (!response.ok) throw new Error('Failed to load anime');
-                
-                const anime = await response.json();
-                
-                if (!anime) return;
-                
-                modalTitle.textContent = 'Chỉnh sửa phim';
-                document.getElementById('animeId').value = anime.id;
-                document.getElementById('title').value = anime.title || '';
-                document.getElementById('slug').value = anime.slug || '';
-                document.getElementById('description').value = anime.description || '';
-                document.getElementById('release_year').value = anime.release_year || '';
-                document.getElementById('status').value = anime.status || 'ongoing';
-                document.getElementById('total_episodes').value = anime.total_episodes || 0;
-                document.getElementById('duration_per_episode').value = anime.duration_per_episode || '';
-                document.getElementById('studio').value = anime.studio || '';
-                document.getElementById('director').value = anime.director || '';
-                document.getElementById('author').value = anime.author || '';
-                document.getElementById('country').value = anime.country || 'Nhật Bản';
-                document.getElementById('featured').checked = anime.featured || false;
-                document.getElementById('meta_title').value = anime.meta_title || '';
-                document.getElementById('meta_description').value = anime.meta_description || '';
-                document.getElementById('meta_keywords').value = anime.meta_keywords || '';
-                
-                // Load and set categories
-                const categoriesResponse = await fetch(`/api/anime/${id}/categories`);
-                if (categoriesResponse.ok) {
-                    const animeCategories = await categoriesResponse.json();
-                    setSelectedCategories(animeCategories.map(c => c.id));
-                }
-                
-                // Set file previews if available
-                if (anime.poster_image) {
-                    posterPreview.src = anime.poster_image;
-                    posterPreview.style.display = 'block';
-                }
-                
-                if (anime.cover_image) {
-                    coverPreview.src = anime.cover_image;
-                    coverPreview.style.display = 'block';
-                }
-                
-                animeModal.style.display = 'flex';
-            } catch (error) {
-                console.error('Lỗi khi tải thông tin anime:', error);
-                showError('Lỗi khi tải thông tin anime');
-            }
+// Edit anime
+async function editAnime(id) {
+    try {
+        const response = await fetch(`/api/anime/${id}`);
+        if (!response.ok) throw new Error('Failed to load anime');
+        
+        const anime = await response.json();
+        
+        if (!anime) return;
+        
+        modalTitle.textContent = 'Chỉnh sửa phim';
+        document.getElementById('animeId').value = anime.id;
+        document.getElementById('title').value = anime.title || '';
+        document.getElementById('slug').value = anime.slug || '';
+        document.getElementById('description').value = anime.description || ''; // Giữ nguyên giá trị, không xử lý
+        document.getElementById('release_year').value = anime.release_year || '';
+        document.getElementById('status').value = anime.status || 'ongoing';
+        document.getElementById('total_episodes').value = anime.total_episodes || 0;
+        document.getElementById('duration_per_episode').value = anime.duration_per_episode || '';
+        document.getElementById('studio').value = anime.studio || '';
+        document.getElementById('director').value = anime.director || '';
+        document.getElementById('author').value = anime.author || '';
+        document.getElementById('country').value = anime.country || 'Nhật Bản';
+        document.getElementById('featured').checked = anime.featured || false;
+        document.getElementById('meta_title').value = anime.meta_title || '';
+        document.getElementById('meta_description').value = anime.meta_description || '';
+        document.getElementById('meta_keywords').value = anime.meta_keywords || '';
+        
+        // Load and set categories
+        const categoriesResponse = await fetch(`/api/anime/${id}/categories`);
+        if (categoriesResponse.ok) {
+            const animeCategories = await categoriesResponse.json();
+            setSelectedCategories(animeCategories.map(c => c.id));
         }
-
-        // Save anime
-        async function saveAnime() {
-            const id = document.getElementById('animeId').value;
-            const title = document.getElementById('title').value.trim();
-            const slug = document.getElementById('slug').value.trim();
-            
-            if (!title || !slug) {
-                alert('Vui lòng nhập tiêu đề và slug');
-                return;
-            }
-            // Prepare anime data
-            const animeData = {
-                title: title,
-                slug: slug,
-                description: document.getElementById('description').value.trim(),
-                release_year: document.getElementById('release_year').value ? parseInt(document.getElementById('release_year').value) : null,
-                status: document.getElementById('status').value,
-                total_episodes: parseInt(document.getElementById('total_episodes').value) || 0,
-                duration_per_episode: document.getElementById('duration_per_episode').value ? parseInt(document.getElementById('duration_per_episode').value) : null,
-                studio: document.getElementById('studio').value.trim(),
-                director: document.getElementById('director').value.trim(),
-                author: document.getElementById('author').value.trim(),
-                country: document.getElementById('country').value.trim(),
-                featured: document.getElementById('featured').checked,
-                meta_title: document.getElementById('meta_title').value.trim(),
-                meta_description: document.getElementById('meta_description').value.trim(),
-                meta_keywords: document.getElementById('meta_keywords').value.trim(),
-                poster_image: posterImageInput.dataset.uploadedUrl || '',
-                cover_image: coverImageInput.dataset.uploadedUrl || ''
-            };
-            
-            // Get selected category IDs
-            const categoryIds = getSelectedCategoryIds();
-            
-            try {
-                let response;
-                if (id) {
-                    // Update existing anime
-                    response = await fetch(`/api/anime/${id}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(animeData)
-                    });
-                } else {
-                    // Add new anime
-                    response = await fetch('/api/anime', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(animeData)
-                    });
-                }
-                
-                if (response.ok) {
-                    // Update categories
-                    const animeId = id || (await response.json()).id;
-                    const categoriesResponse = await fetch(`/api/anime/${animeId}/categories`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ category_ids: categoryIds })
-                    });
-                    
-                    if (categoriesResponse.ok) {
-                        closeAnimeModal();
-                        await loadAnimeData();
-                        showSuccess(id ? 'Cập nhật phim thành công!' : 'Thêm phim mới thành công!');
-                    } else {
-                        throw new Error('Failed to update categories');
-                    }
-                } else {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Failed to save anime');
-                }
-            } catch (error) {
-                console.error('Lỗi khi lưu anime:', error);
-                showError('Lỗi khi lưu phim: ' + error.message);
-            }
+        
+        // Set file previews if available
+        if (anime.poster_image) {
+            posterPreview.src = anime.poster_image;
+            posterPreview.style.display = 'block';
         }
+        
+        if (anime.cover_image) {
+            coverPreview.src = anime.cover_image;
+            coverPreview.style.display = 'block';
+        }
+        
+        animeModal.style.display = 'flex';
+    } catch (error) {
+        console.error('Lỗi khi tải thông tin anime:', error);
+        showError('Lỗi khi tải thông tin anime');
+    }
+}
 
+// Save anime
+async function saveAnime() {
+    const id = document.getElementById('animeId').value;
+    const title = document.getElementById('title').value.trim();
+    const slug = document.getElementById('slug').value.trim();
+    
+    if (!title || !slug) {
+        alert('Vui lòng nhập tiêu đề và slug');
+        return;
+    }
+    
+    // Prepare anime data
+    const animeData = {
+        title: title,
+        slug: slug,
+        description: document.getElementById('description').value, // Bỏ .trim() để giữ nguyên định dạng
+        release_year: document.getElementById('release_year').value ? parseInt(document.getElementById('release_year').value) : null,
+        status: document.getElementById('status').value,
+        total_episodes: parseInt(document.getElementById('total_episodes').value) || 0,
+        duration_per_episode: document.getElementById('duration_per_episode').value ? parseInt(document.getElementById('duration_per_episode').value) : null,
+        studio: document.getElementById('studio').value.trim(),
+        director: document.getElementById('director').value.trim(),
+        author: document.getElementById('author').value.trim(),
+        country: document.getElementById('country').value.trim(),
+        featured: document.getElementById('featured').checked,
+        meta_title: document.getElementById('meta_title').value.trim(),
+        meta_description: document.getElementById('meta_description').value.trim(),
+        meta_keywords: document.getElementById('meta_keywords').value.trim(),
+        poster_image: posterImageInput.dataset.uploadedUrl || '',
+        cover_image: coverImageInput.dataset.uploadedUrl || ''
+    };
+    
+    // Get selected category IDs
+    const categoryIds = getSelectedCategoryIds();
+    
+    try {
+        let response;
+        if (id) {
+            // Update existing anime
+            response = await fetch(`/api/anime/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(animeData)
+            });
+        } else {
+            // Add new anime
+            response = await fetch('/api/anime', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(animeData)
+            });
+        }
+        
+        if (response.ok) {
+            // Update categories
+            const animeId = id || (await response.json()).id;
+            const categoriesResponse = await fetch(`/api/anime/${animeId}/categories`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ category_ids: categoryIds })
+            });
+            
+            if (categoriesResponse.ok) {
+                closeAnimeModal();
+                await loadAnimeData();
+                showSuccess(id ? 'Cập nhật phim thành công!' : 'Thêm phim mới thành công!');
+            } else {
+                throw new Error('Failed to update categories');
+            }
+        } else {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to save anime');
+        }
+    } catch (error) {
+        console.error('Lỗi khi lưu anime:', error);
+        showError('Lỗi khi lưu phim: ' + error.message);
+    }
+}
         // Delete anime
         async function deleteAnime(id) {
             if (!confirm('Bạn có chắc chắn muốn xóa phim này?')) {
