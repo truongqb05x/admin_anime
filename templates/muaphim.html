@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Quản lý Mùa Phim</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../static/css/pages/muaphim.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-film fa-2x"></i>
+            <h2>Anime Admin</h2>
+        </div>
+        <div class="sidebar-menu">
+            <ul>
+                <li><a href="/" ><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a></li>
+                <li><a href="/bophim" ><i class="fas fa-film"></i> <span>Quản lý Phim</span></a></li>
+                <li><a href="/blog"><i class="fas fa-tags"></i> <span>Blog</span></a></li>
+                <li><a href="/thongke"><i class="fas fa-chart-bar"></i> <span>Thống kê</span></a></li>
+                <li><a href="/muaphim" class="active"><i class="fas fa-calendar-alt"></i> <span>Mùa phim</span></a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <h1>Quản lý Mùa Phim</h1>
+            </div>
+            <div class="header-right">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm mùa phim...">
+                </div>
+                <div class="user-profile">
+                    <div class="user-avatar">AD</div>
+                    <span>Admin User</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content">
+            <div class="page-title">
+                <h2>Quản lý mùa phim</h2>
+                <button class="btn btn-primary" id="addSeasonBtn"><i class="fas fa-plus"></i> Thêm mùa mới</button>
+            </div>
+
+            <!-- Alert Messages -->
+            <div id="alertMessage" class="alert"></div>
+
+            <!-- Filters -->
+            <div class="form-container">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="animeFilter">Lọc theo phim</label>
+                        <select class="form-control" id="animeFilter">
+                            <option value="">Tất cả phim</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="yearFilter">Lọc theo năm</label>
+                        <input type="number" class="form-control" id="yearFilter" placeholder="Năm phát hành" min="1900" max="2030">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Container -->
+            <div class="table-container">
+                <div class="table-header">
+                    <div class="table-title">Danh sách mùa phim</div>
+                    <div>
+                        <button class="btn btn-primary" id="refreshBtn"><i class="fas fa-sync-alt"></i> Làm mới</button>
+                    </div>
+                </div>
+                <div id="loadingIndicator" class="loading" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <p>Đang tải dữ liệu...</p>
+                </div>
+                <table id="seasonsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên phim</th>
+                            <th>Số mùa</th>
+                            <th>Tên mùa</th>
+                            <th>Số tập</th>
+                            <th>Năm phát hành</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="seasonsTableBody">
+                        <!-- Dữ liệu sẽ được thêm bằng JavaScript -->
+                    </tbody>
+                </table>
+                <div class="pagination" id="pagination">
+                    <!-- Pagination sẽ được thêm bằng JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for adding/editing seasons -->
+    <div class="modal-overlay" id="seasonModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Thêm mùa phim mới</h3>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="modalSeasonForm">
+                    <input type="hidden" id="modal_id" name="id">
+                    <div class="form-group">
+                        <label class="form-label" for="modal_anime_id">Chọn phim *</label>
+                        <select class="form-control" id="modal_anime_id" name="anime_id" required>
+                            <option value="">-- Chọn phim --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="modal_season_number">Số mùa *</label>
+                        <input type="number" class="form-control" id="modal_season_number" name="season_number" min="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="modal_name">Tên mùa</label>
+                        <input type="text" class="form-control" id="modal_name" name="name" placeholder="Ví dụ: Mùa 1, Phần 2, Final Season...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="modal_episode_count">Số tập</label>
+                        <input type="number" class="form-control" id="modal_episode_count" name="episode_count" min="0" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="modal_release_year">Năm phát hành *</label>
+                        <input type="number" class="form-control" id="modal_release_year" name="release_year" min="1900" max="2030" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" id="cancelModal">Hủy</button>
+                <button class="btn btn-primary" id="saveSeason">Lưu</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class SeasonManager {
+            constructor() {
+                this.currentPage = 1;
+                this.perPage = 10;
+                this.totalPages = 0;
+                this.totalItems = 0;
+                this.currentFilter = {
+                    search: '',
+                    anime_id: '',
+                    year: ''
+                };
+                this.animeList = [];
+                this.init();
+            }
+
+            async init() {
+                await this.loadAnimeList();
+                this.setupEventListeners();
+                this.loadSeasons();
+            }
+
+            setupEventListeners() {
+                // Modal events
+                document.getElementById('addSeasonBtn').addEventListener('click', () => this.openAddModal());
+                document.getElementById('closeModal').addEventListener('click', () => this.closeModal());
+                document.getElementById('cancelModal').addEventListener('click', () => this.closeModal());
+                document.getElementById('saveSeason').addEventListener('click', () => this.saveSeason());
+
+                // Search and filter events
+                document.getElementById('searchInput').addEventListener('input', (e) => {
+                    this.currentFilter.search = e.target.value;
+                    this.debounce(() => this.loadSeasons(), 500);
+                });
+
+                document.getElementById('animeFilter').addEventListener('change', (e) => {
+                    this.currentFilter.anime_id = e.target.value;
+                    this.loadSeasons();
+                });
+
+                document.getElementById('yearFilter').addEventListener('input', (e) => {
+                    this.currentFilter.year = e.target.value;
+                    this.debounce(() => this.loadSeasons(), 500);
+                });
+
+                document.getElementById('refreshBtn').addEventListener('click', () => this.loadSeasons());
+            }
+
+            debounce(func, wait) {
+                clearTimeout(this.debounceTimer);
+                this.debounceTimer = setTimeout(func, wait);
+            }
+
+            async loadAnimeList() {
+                try {
+                    const response = await fetch('/api/anime?per_page=1000');
+                    const data = await response.json();
+                    if (data.anime) {
+                        this.animeList = data.anime;
+                        this.populateAnimeSelects();
+                    }
+                } catch (error) {
+                    console.error('Error loading anime list:', error);
+                    this.showAlert('Lỗi khi tải danh sách phim', 'error');
+                }
+            }
+
+            populateAnimeSelects() {
+                const modalSelect = document.getElementById('modal_anime_id');
+                const filterSelect = document.getElementById('animeFilter');
+
+                modalSelect.innerHTML = '<option value="">-- Chọn phim --</option>';
+                filterSelect.innerHTML = '<option value="">Tất cả phim</option>';
+
+                this.animeList.forEach(anime => {
+                    const option1 = document.createElement('option');
+                    option1.value = anime.id;
+                    option1.textContent = anime.title;
+                    modalSelect.appendChild(option1);
+
+                    const option2 = document.createElement('option');
+                    option2.value = anime.id;
+                    option2.textContent = anime.title;
+                    filterSelect.appendChild(option2);
+                });
+            }
+
+            async loadSeasons(page = 1) {
+                this.showLoading(true);
+                this.currentPage = page;
+
+                try {
+                    const params = new URLSearchParams({
+                        page: page,
+                        per_page: this.perPage,
+                        ...this.currentFilter
+                    });
+
+                    const response = await fetch(`/api/seasons?${params}`);
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        this.renderSeasonsTable(data.seasons);
+                        this.renderPagination(data.total, data.page, data.total_pages);
+                        this.totalItems = data.total;
+                    } else {
+                        throw new Error(data.error || 'Lỗi khi tải dữ liệu');
+                    }
+                } catch (error) {
+                    console.error('Error loading seasons:', error);
+                    this.showAlert('Lỗi khi tải danh sách mùa phim: ' + error.message, 'error');
+                    this.renderSeasonsTable([]);
+                } finally {
+                    this.showLoading(false);
+                }
+            }
+
+            renderSeasonsTable(seasons) {
+                const tbody = document.getElementById('seasonsTableBody');
+                
+                if (seasons.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 20px;">
+                                Không có mùa phim nào. Hãy thêm mùa phim đầu tiên!
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                tbody.innerHTML = seasons.map(season => `
+                    <tr>
+                        <td>${season.id}</td>
+                        <td>${season.anime_title}</td>
+                        <td>${season.season_number}</td>
+                        <td>${season.name || '-'}</td>
+                        <td>${season.episode_count}</td>
+                        <td>${season.release_year}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn edit" data-id="${season.id}">
+                                    <i class="fas fa-edit"></i> Sửa
+                                </button>
+                                <button class="action-btn delete" data-id="${season.id}">
+                                    <i class="fas fa-trash"></i> Xóa
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+
+                this.attachTableEvents();
+            }
+
+            attachTableEvents() {
+                document.querySelectorAll('.action-btn.edit').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const seasonId = parseInt(e.currentTarget.getAttribute('data-id'));
+                        this.editSeason(seasonId);
+                    });
+                });
+
+                document.querySelectorAll('.action-btn.delete').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const seasonId = parseInt(e.currentTarget.getAttribute('data-id'));
+                        this.deleteSeason(seasonId);
+                    });
+                });
+            }
+
+            renderPagination(total, currentPage, totalPages) {
+                const pagination = document.getElementById('pagination');
+                
+                if (totalPages <= 1) {
+                    pagination.innerHTML = '';
+                    return;
+                }
+
+                let paginationHTML = '';
+
+                // Previous button
+                if (currentPage > 1) {
+                    paginationHTML += `<button onclick="seasonManager.loadSeasons(${currentPage - 1})">‹</button>`;
+                }
+
+                // Page numbers
+                for (let i = 1; i <= totalPages; i++) {
+                    if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                        paginationHTML += `
+                            <button 
+                                onclick="seasonManager.loadSeasons(${i})" 
+                                class="${i === currentPage ? 'active' : ''}"
+                            >
+                                ${i}
+                            </button>
+                        `;
+                    } else if (i === currentPage - 3 || i === currentPage + 3) {
+                        paginationHTML += `<button disabled>...</button>`;
+                    }
+                }
+
+                // Next button
+                if (currentPage < totalPages) {
+                    paginationHTML += `<button onclick="seasonManager.loadSeasons(${currentPage + 1})">›</button>`;
+                }
+
+                pagination.innerHTML = paginationHTML;
+            }
+
+            openAddModal() {
+                this.isEditing = false;
+                this.currentEditId = null;
+                document.getElementById('modalTitle').textContent = 'Thêm mùa phim mới';
+                document.getElementById('modalSeasonForm').reset();
+                this.openModal();
+            }
+
+            async editSeason(seasonId) {
+                try {
+                    const response = await fetch(`/api/seasons/${seasonId}`);
+                    const season = await response.json();
+
+                    if (response.ok) {
+                        this.isEditing = true;
+                        this.currentEditId = seasonId;
+                        document.getElementById('modalTitle').textContent = 'Sửa mùa phim';
+                        
+                        // Fill form with season data
+                        document.getElementById('modal_id').value = season.id;
+                        document.getElementById('modal_anime_id').value = season.anime_id;
+                        document.getElementById('modal_season_number').value = season.season_number;
+                        document.getElementById('modal_name').value = season.name || '';
+                        document.getElementById('modal_episode_count').value = season.episode_count;
+                        document.getElementById('modal_release_year').value = season.release_year;
+                        
+                        this.openModal();
+                    } else {
+                        throw new Error(season.error || 'Lỗi khi tải dữ liệu mùa phim');
+                    }
+                } catch (error) {
+                    console.error('Error loading season:', error);
+                    this.showAlert('Lỗi khi tải thông tin mùa phim: ' + error.message, 'error');
+                }
+            }
+
+            openModal() {
+                document.getElementById('seasonModal').classList.add('active');
+            }
+
+            closeModal() {
+                document.getElementById('seasonModal').classList.remove('active');
+                document.getElementById('modalSeasonForm').reset();
+            }
+
+            async saveSeason() {
+                const form = document.getElementById('modalSeasonForm');
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+
+                // Convert number fields
+                data.anime_id = parseInt(data.anime_id);
+                data.season_number = parseInt(data.season_number);
+                data.episode_count = parseInt(data.episode_count) || 0;
+                data.release_year = parseInt(data.release_year);
+
+                try {
+                    let response;
+                    if (this.isEditing) {
+                        response = await fetch(`/api/seasons/${this.currentEditId}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(data)
+                        });
+                    } else {
+                        response = await fetch('/api/seasons', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(data)
+                        });
+                    }
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        this.showAlert(
+                            this.isEditing ? 'Cập nhật mùa phim thành công!' : 'Thêm mùa phim mới thành công!',
+                            'success'
+                        );
+                        this.closeModal();
+                        this.loadSeasons(this.currentPage);
+                    } else {
+                        throw new Error(result.error || 'Lỗi khi lưu mùa phim');
+                    }
+                } catch (error) {
+                    console.error('Error saving season:', error);
+                    this.showAlert('Lỗi khi lưu mùa phim: ' + error.message, 'error');
+                }
+            }
+
+            async deleteSeason(seasonId) {
+                if (!confirm('Bạn có chắc chắn muốn xóa mùa phim này?')) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/seasons/${seasonId}`, {
+                        method: 'DELETE'
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        this.showAlert('Xóa mùa phim thành công!', 'success');
+                        this.loadSeasons(this.currentPage);
+                    } else {
+                        throw new Error(result.error || 'Lỗi khi xóa mùa phim');
+                    }
+                } catch (error) {
+                    console.error('Error deleting season:', error);
+                    this.showAlert('Lỗi khi xóa mùa phim: ' + error.message, 'error');
+                }
+            }
+
+            showAlert(message, type) {
+                const alert = document.getElementById('alertMessage');
+                alert.textContent = message;
+                alert.className = `alert alert-${type}`;
+                alert.style.display = 'block';
+
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 5000);
+            }
+
+            showLoading(show) {
+                const loading = document.getElementById('loadingIndicator');
+                const tableBody = document.getElementById('seasonsTableBody');
+                
+                if (show) {
+                    loading.style.display = 'block';
+                    tableBody.style.display = 'none';
+                } else {
+                    loading.style.display = 'none';
+                    tableBody.style.display = '';
+                }
+            }
+        }
+
+        // Initialize the season manager when the page loads
+        let seasonManager;
+        document.addEventListener('DOMContentLoaded', () => {
+            seasonManager = new SeasonManager();
+        });
+    </script>
+</body>
+</html>

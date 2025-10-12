@@ -11,7 +11,7 @@ db_config = {
     'host': 'localhost',
     'user': 'root',
     'password': '',
-    'database': 'm',
+    'database': 'test',
 }
 
 # Cấu hình upload file
@@ -42,6 +42,15 @@ def bophim():
 @app.route('/tapphim')
 def tapphim():
     return render_template('tapphim.html')
+@app.route('/blog')
+def blog():
+    return render_template('blog.html')
+@app.route('/thongke')
+def thongke():
+    return render_template('thongke.html')
+@app.route('/muaphim')
+def muaphim():
+    return render_template('muaphim.html')
 # API cho danh sách anime
 @app.route('/api/anime', methods=['GET'])
 def get_anime_list():
@@ -450,45 +459,6 @@ def get_anime_seasons(anime_id):
         return jsonify(seasons)
         
     except Error as e:
-        return jsonify({'error': str(e)}), 500
-    finally:
-        if connection.is_connected():
-            cursor.close()
-            connection.close()
-
-# API tạo season mới
-@app.route('/api/anime/<int:anime_id>/seasons', methods=['POST'])
-def create_season(anime_id):
-    connection = get_db_connection()
-    if not connection:
-        return jsonify({'error': 'Database connection failed'}), 500
-    
-    try:
-        data = request.get_json()
-        
-        cursor = connection.cursor()
-        
-        query = """
-            INSERT INTO seasons (anime_id, season_number, name, episode_count, release_year)
-            VALUES (%s, %s, %s, %s, %s)
-        """
-        
-        values = (
-            anime_id,
-            data.get('season_number'),
-            data.get('name'),
-            data.get('episode_count', 0),
-            data.get('release_year')
-        )
-        
-        cursor.execute(query, values)
-        season_id = cursor.lastrowid
-        connection.commit()
-        
-        return jsonify({'id': season_id, 'message': 'Season created successfully'})
-        
-    except Error as e:
-        connection.rollback()
         return jsonify({'error': str(e)}), 500
     finally:
         if connection.is_connected():
@@ -907,6 +877,259 @@ def import_episodes():
             'message': f'Import completed: {results["successful"]} thành công, {results["failed"]} thất bại',
             'results': results
         })
+        
+    except Error as e:
+        connection.rollback()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+# API lấy danh sách seasons với thông tin anime
+@app.route('/api/seasons', methods=['GET'])
+def get_seasons():
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'error': 'Database connection failed'}), 500
+    
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        # Lấy tham số từ query string
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+        search = request.args.get('search', '')
+        anime_id = request.args.get('anime_id', type=int)
+        
+        # Xây dựng query
+        query = """
+            SELECT s.*, a.title as anime_title, a.slug as anime_slug
+            FROM seasons s
+            JOIN anime a ON s.anime_id = a.id
+            WHERE 1=1
+        """
+        params = []
+        
+        if search:
+            query += " AND (s.name LIKE %s OR a.title LIKE %s)"
+            params.extend([f'%{search}%', f'%{search}%'])
+        
+        if anime_id:
+            query += " AND s.anime_id = %s"
+            params.append(anime_id)
+        
+        # Đếm tổng số bản ghi
+        count_query = "SELECT COUNT(*) as total FROM seasons s JOIN anime a ON s.anime_id = a.id WHERE 1=1"
+        count_params = []
+        
+        if search:
+            count_query += " AND (s.name LIKE %s OR a.title LIKE %s)"
+            count_params.extend([f'%{search}%', f'%{search}%'])
+        
+        if anime_id:
+            count_query += " AND s.anime_id = %s"
+            count_params.append(anime_id)
+        
+        cursor.execute(count_query, count_params)
+        total_count = cursor.fetchone()['total']
+        
+        # Thêm phân trang và sắp xếp
+        query += " ORDER BY s.anime_id, s.season_number LIMIT %s OFFSET %s"
+        params.extend([per_page, (page - 1) * per_page])
+        
+        cursor.execute(query, params)
+        seasons = cursor.fetchall()
+        
+        return jsonify({
+            'seasons': seasons,
+            'total': total_count,
+            'page': page,
+            'per_page': per_page,
+            'total_pages': (total_count + per_page - 1) // per_page
+        })
+        
+    except Error as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+# API lấy thông tin chi tiết season
+@app.route('/api/seasons/<int:season_id>', methods=['GET'])
+def get_season(season_id):
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'error': 'Database connection failed'}), 500
+    
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        query = """
+            SELECT s.*, a.title as anime_title
+            FROM seasons s
+            JOIN anime a ON s.anime_id = a.id
+            WHERE s.id = %s
+        """
+        cursor.execute(query, (season_id,))
+        season = cursor.fetchone()
+        
+        if not season:
+            return jsonify({'error': 'Season not found'}), 404
+            
+        return jsonify(season)
+        
+    except Error as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+# API tạo season mới
+@app.route('/api/seasons', methods=['POST'])
+def create_season():
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'error': 'Database connection failed'}), 500
+    
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        if not data.get('anime_id') or not data.get('season_number'):
+            return jsonify({'error': 'Anime ID and season number are required'}), 400
+        
+        cursor = connection.cursor()
+        
+        # Kiểm tra xem season number đã tồn tại chưa
+        check_query = "SELECT id FROM seasons WHERE anime_id = %s AND season_number = %s"
+        cursor.execute(check_query, (data.get('anime_id'), data.get('season_number')))
+        existing_season = cursor.fetchone()
+        
+        if existing_season:
+            return jsonify({'error': 'Season number already exists for this anime'}), 400
+        
+        query = """
+            INSERT INTO seasons (anime_id, season_number, name, episode_count, release_year)
+            VALUES (%s, %s, %s, %s, %s)
+        """
+        
+        values = (
+            data.get('anime_id'),
+            data.get('season_number'),
+            data.get('name'),
+            data.get('episode_count', 0),
+            data.get('release_year')
+        )
+        
+        cursor.execute(query, values)
+        season_id = cursor.lastrowid
+        connection.commit()
+        
+        return jsonify({'id': season_id, 'message': 'Season created successfully'}), 201
+        
+    except Error as e:
+        connection.rollback()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+# API cập nhật season
+@app.route('/api/seasons/<int:season_id>', methods=['PUT'])
+def update_season(season_id):
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'error': 'Database connection failed'}), 500
+    
+    try:
+        data = request.get_json()
+        
+        cursor = connection.cursor()
+        
+        # Kiểm tra season tồn tại
+        check_query = "SELECT anime_id FROM seasons WHERE id = %s"
+        cursor.execute(check_query, (season_id,))
+        existing_season = cursor.fetchone()
+        
+        if not existing_season:
+            return jsonify({'error': 'Season not found'}), 404
+        
+        old_anime_id = existing_season['anime_id']
+        new_anime_id = data.get('anime_id', old_anime_id)
+        
+        # Kiểm tra season number trùng (nếu có thay đổi)
+        if data.get('season_number'):
+            check_duplicate_query = """
+                SELECT id FROM seasons 
+                WHERE anime_id = %s AND season_number = %s AND id != %s
+            """
+            cursor.execute(check_duplicate_query, (new_anime_id, data.get('season_number'), season_id))
+            duplicate_season = cursor.fetchone()
+            
+            if duplicate_season:
+                return jsonify({'error': 'Season number already exists for this anime'}), 400
+        
+        query = """
+            UPDATE seasons SET
+                anime_id = %s, season_number = %s, name = %s, 
+                episode_count = %s, release_year = %s
+            WHERE id = %s
+        """
+        
+        values = (
+            new_anime_id,
+            data.get('season_number'),
+            data.get('name'),
+            data.get('episode_count'),
+            data.get('release_year'),
+            season_id
+        )
+        
+        cursor.execute(query, values)
+        connection.commit()
+        
+        if cursor.rowcount == 0:
+            return jsonify({'error': 'Season not found'}), 404
+            
+        return jsonify({'message': 'Season updated successfully'})
+        
+    except Error as e:
+        connection.rollback()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+# API xóa season
+@app.route('/api/seasons/<int:season_id>', methods=['DELETE'])
+def delete_season(season_id):
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({'error': 'Database connection failed'}), 500
+    
+    try:
+        cursor = connection.cursor()
+        
+        # Kiểm tra xem season có episodes không
+        check_episodes_query = "SELECT COUNT(*) as episode_count FROM episodes WHERE season_id = %s"
+        cursor.execute(check_episodes_query, (season_id,))
+        episode_count = cursor.fetchone()['episode_count']
+        
+        if episode_count > 0:
+            return jsonify({'error': 'Cannot delete season with existing episodes'}), 400
+        
+        query = "DELETE FROM seasons WHERE id = %s"
+        cursor.execute(query, (season_id,))
+        connection.commit()
+        
+        if cursor.rowcount == 0:
+            return jsonify({'error': 'Season not found'}), 404
+            
+        return jsonify({'message': 'Season deleted successfully'})
         
     except Error as e:
         connection.rollback()
